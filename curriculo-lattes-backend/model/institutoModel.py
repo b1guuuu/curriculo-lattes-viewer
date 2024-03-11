@@ -5,14 +5,14 @@ cursor = conexao.cursor()
 
 #CRUD
 #Create
-def Create(nome=None,acronimo=None):
+def CreateInstituto(nome=None,acronimo=None):
     sql = 'INSERT INTO instituto (nome, acronimo) VALUES(%s, %s)'
     val = (nome,acronimo)
     cursor.execute(sql,val)
     conexao.commit()
 
 #READ
-def Read():
+def BuscarInstituto():
     cursor.execute('SELECT * FROM instituto')
     resultado = cursor.fetchall()
     return resultado
@@ -20,9 +20,8 @@ def Read():
 #UPDATE
 
 #DELEAT
-def Deleat(id):
+def DeletarInstituto(id):
     comando = ('DELETE FROM instituto WHERE id ='+str(id))
     cursor.execute(comando)
     conexao.commit()
 
-# Create("Faculdade Miguel","FeMASS")
