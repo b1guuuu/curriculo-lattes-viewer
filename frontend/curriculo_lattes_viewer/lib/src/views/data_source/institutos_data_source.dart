@@ -1,12 +1,12 @@
+import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
 import 'package:flutter/material.dart';
 
 class InstitutosDataSource extends DataTableSource {
-  final List<Map<String, dynamic>> _institutos;
+  final List<Instituto> _institutos;
   final double _larguraTabela;
 
   InstitutosDataSource(
-      {required List<Map<String, dynamic>> institutos,
-      required double larguraTabela})
+      {required List<Instituto> institutos, required double larguraTabela})
       : _institutos = institutos,
         _larguraTabela = larguraTabela;
 
@@ -15,11 +15,11 @@ class InstitutosDataSource extends DataTableSource {
     return DataRow(cells: <DataCell>[
       DataCell(SizedBox(
         width: _larguraTabela * 0.7,
-        child: Text(_institutos[index]['nome']),
+        child: Text(_institutos[index].nome),
       )),
       DataCell(SizedBox(
         width: _larguraTabela * 0.3,
-        child: Text(_institutos[index]['acronimo']),
+        child: Text(_institutos[index].acronimo),
       )),
     ]);
   }

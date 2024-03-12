@@ -1,3 +1,5 @@
+import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
+import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
 import 'package:curriculo_lattes_viewer/src/views/data_source/institutos_data_source.dart';
 import 'package:flutter/material.dart';
 
@@ -20,17 +22,20 @@ final List<Map<String, dynamic>> _opcoesDropdown = [
 
 class InstitutosPageState extends State<InstitutosPage> {
   String _valorDropdown = _opcoesDropdown.first['valor'];
-  List<Map<String, dynamic>> _institutos = [];
+  List<Instituto> _institutos = [];
   InstitutosDataSource _institutosDataSource =
       InstitutosDataSource(institutos: [], larguraTabela: 1080);
+  final InstitutosController _controller = InstitutosController();
 
   @override
   void initState() {
     super.initState();
-    List<Map<String, dynamic>> temp = [];
-    for (var element in _opcoesDropdown) {
-      temp.add({'nome': 'nome', 'acronimo': 'acronimo'});
-    }
+    _listaInstitutos();
+  }
+
+  void _listaInstitutos() async {
+    var temp = await _controller.listar();
+    print(temp);
     setState(() {
       _institutos = temp;
     });
