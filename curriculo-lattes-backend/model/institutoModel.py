@@ -1,4 +1,4 @@
-from config import conexao
+from config.configdb import conexao
 #CRUD
 
 cursor = conexao.cursor()
