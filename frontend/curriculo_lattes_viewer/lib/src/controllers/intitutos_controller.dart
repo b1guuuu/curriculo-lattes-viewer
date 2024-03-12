@@ -19,10 +19,10 @@ class InstitutosController {
   }
 
   Future<void> inserir(String nome, String acronimo) async {
-    await http.post(Uri.parse('$_baseURL/$nome/$acronimo'));
+    await http.post(Uri.parse('$_baseURL/inserir/$nome/$acronimo'));
   }
 
   Future<void> deletar(int id) async {
-    await http.delete(Uri.parse('$_baseURL/$id'));
+    await http.delete(Uri.parse('$_baseURL/deletar/$id'));
   }
 }

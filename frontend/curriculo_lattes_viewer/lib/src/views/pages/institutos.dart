@@ -26,6 +26,10 @@ class InstitutosPageState extends State<InstitutosPage> {
   InstitutosDataSource _institutosDataSource =
       InstitutosDataSource(institutos: [], larguraTabela: 1080);
   final InstitutosController _controller = InstitutosController();
+  final TextEditingController _termoTFController = TextEditingController();
+  final TextEditingController _codigoTFController = TextEditingController();
+  final TextEditingController _nomeTFController = TextEditingController();
+  final TextEditingController _acronimoTFController = TextEditingController();
 
   @override
   void initState() {
@@ -33,9 +37,8 @@ class InstitutosPageState extends State<InstitutosPage> {
     _listaInstitutos();
   }
 
-  void _listaInstitutos() async {
+  Future<void> _listaInstitutos() async {
     var temp = await _controller.listar();
-    print(temp);
     setState(() {
       _institutos = temp;
     });
@@ -47,6 +50,74 @@ class InstitutosPageState extends State<InstitutosPage> {
           institutos: _institutos,
           larguraTabela: MediaQuery.of(context).size.width * 0.9);
     });
+  }
+
+  void _defineTextControllersNovoInstituto() {
+    setState(() {
+      _codigoTFController.value = const TextEditingValue(text: '');
+      _nomeTFController.value = const TextEditingValue(text: '');
+      _acronimoTFController.value = const TextEditingValue(text: '');
+    });
+  }
+
+  void _defineTextControllersEditarInstituto(int indexInstituto) {
+    setState(() {
+      _codigoTFController.value =
+          TextEditingValue(text: _institutos[indexInstituto].id.toString());
+      _nomeTFController.value =
+          TextEditingValue(text: _institutos[indexInstituto].nome);
+      _acronimoTFController.value =
+          TextEditingValue(text: _institutos[indexInstituto].acronimo);
+    });
+  }
+
+  Future<void> _modalBuilder(BuildContext context) {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Novo Instituto'),
+            content: Column(
+              children: [
+                TextField(
+                  decoration: const InputDecoration(
+                      hintText: 'Código', border: OutlineInputBorder()),
+                  readOnly: true,
+                  controller: _codigoTFController,
+                ),
+                TextField(
+                  decoration: const InputDecoration(
+                      hintText: 'Nome', border: OutlineInputBorder()),
+                  controller: _nomeTFController,
+                ),
+                TextField(
+                  decoration: const InputDecoration(
+                      hintText: 'Acronimo', border: OutlineInputBorder()),
+                  controller: _acronimoTFController,
+                )
+              ],
+            ),
+            actions: [
+              FilledButton(
+                onPressed: () => {
+                  if (_codigoTFController.value.text.isEmpty)
+                    {
+                      _controller
+                          .inserir(_nomeTFController.value.text,
+                              _acronimoTFController.value.text)
+                          .then((value) => Navigator.pop(context))
+                    }
+                  else
+                    {}
+                },
+                child: const Text('Gravar'),
+              ),
+              FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar')),
+            ],
+          );
+        });
   }
 
   @override
@@ -77,7 +148,7 @@ class InstitutosPageState extends State<InstitutosPage> {
                                 border: InputBorder.none,
                                 constraints: BoxConstraints(
                                     maxHeight: 200, maxWidth: 200)),
-                            onChanged: (valor) => print(valor),
+                            controller: _termoTFController,
                           ),
                         ],
                       ),
@@ -90,7 +161,6 @@ class InstitutosPageState extends State<InstitutosPage> {
                           DropdownButton(
                             value: _valorDropdown,
                             onChanged: (valor) {
-                              print(valor);
                               setState(() {
                                 _valorDropdown = valor!;
                               });
@@ -110,7 +180,7 @@ class InstitutosPageState extends State<InstitutosPage> {
                       ),
                       FilledButton(
                           onPressed: () => print('click'),
-                          child: Text('Aplicar'))
+                          child: const Text('Aplicar'))
                     ],
                   ),
                 ),
@@ -121,7 +191,7 @@ class InstitutosPageState extends State<InstitutosPage> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(10),
                   child: PaginatedDataTable(
                     header: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -129,14 +199,19 @@ class InstitutosPageState extends State<InstitutosPage> {
                         Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: FilledButton(
-                              onPressed: () => print('Incluir'),
-                              child: Text('Incluir')),
+                              onPressed: () async {
+                                _defineTextControllersNovoInstituto();
+                                await _modalBuilder(context);
+                                await _listaInstitutos();
+                                _inicializaInstitutoDataSource();
+                              },
+                              child: const Text('Incluir')),
                         ),
                         Padding(
                           padding: const EdgeInsets.all(5.0),
                           child: FilledButton(
                               onPressed: () => print('Excluir'),
-                              child: Text('Excluir')),
+                              child: const Text('Excluir')),
                         ),
                       ],
                     ),
