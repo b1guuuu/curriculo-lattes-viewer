@@ -93,12 +93,10 @@ class InstitutosPageState extends State<InstitutosPage> {
         });
   }
 
-  Future<void> _excluirInstitutosSelecionados() async {
-    var institutosSelecionados = _tableController.getSelectedRows();
-    institutosSelecionados.forEach((Instituto instituto) async {
-      await _controller.deletar(instituto.id);
-      _tableController.removeRow(instituto.id);
-    });
+  Future<void> _excluirInstitutoSelecionado() async {
+    var instituto = _tableController.getSelectedRows().first;
+    await _controller.deletar(instituto.id);
+    _tableController.removeRow(instituto.id);
   }
 
   @override
@@ -185,27 +183,34 @@ class InstitutosPageState extends State<InstitutosPage> {
             ),
             const FilterMenuDivider(),
             FilterMenuItem(
-                title: const Text("Excluir selecionados"),
+                title: const Text("Excluir selecionado"),
                 onTap: () {
                   if (_tableController.getSelectedRows().isEmpty) {
                     QuickAlert.show(
                         context: context,
                         type: QuickAlertType.warning,
-                        text: "Selecione pelo menos 1 instituto");
+                        text: "Selecione um instituto");
                   } else {
-                    QuickAlert.show(
-                        context: context,
-                        type: QuickAlertType.confirm,
-                        text:
-                            'Deseja excluir ${_tableController.getSelectedRows().length} institutos?',
-                        confirmBtnText: 'Confirmar',
-                        cancelBtnText: 'Cancelar',
-                        confirmBtnColor: Colors.red,
-                        title: 'Você tem certeza?',
-                        onConfirmBtnTap: () async {
-                          await _excluirInstitutosSelecionados();
-                          Navigator.of(context).pop();
-                        });
+                    if (_tableController.getSelectedRows().length > 1) {
+                      QuickAlert.show(
+                          context: context,
+                          type: QuickAlertType.warning,
+                          text: "Selecione apenas 1 instituto");
+                    } else {
+                      QuickAlert.show(
+                          context: context,
+                          type: QuickAlertType.confirm,
+                          text:
+                              'Deseja excluir ${_tableController.getSelectedRows().first.nome}?',
+                          confirmBtnText: 'Confirmar',
+                          cancelBtnText: 'Cancelar',
+                          confirmBtnColor: Colors.red,
+                          title: 'Você tem certeza?',
+                          onConfirmBtnTap: () async {
+                            await _excluirInstitutoSelecionado();
+                            Navigator.of(context).pop();
+                          });
+                    }
                   }
                 }),
             const FilterMenuDivider(),
