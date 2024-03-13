@@ -80,7 +80,12 @@ class InstitutosPageState extends State<InstitutosPage> {
                   if (_codigoTFController.value.text.isEmpty) {
                     await _controller.inserir(_nomeTFController.value.text,
                         _acronimoTFController.value.text);
-                  } else {}
+                  } else {
+                    await _controller.atualizar(
+                        int.parse(_codigoTFController.text),
+                        _nomeTFController.value.text,
+                        _acronimoTFController.value.text);
+                  }
                   Navigator.of(context).pop();
                 },
                 child: const Text('Gravar'),
