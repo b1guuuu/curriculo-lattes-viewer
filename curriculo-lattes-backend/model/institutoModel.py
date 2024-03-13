@@ -19,8 +19,8 @@ def BuscarInstituto():
 
 #UPDATE
 def UpdateInstituto(id=None,nome=None,acronimo=None):
-    sql = 'UPDATE instituto SET nome=%s, acronimo=%s WHERE id=%d'
-    val = (nome,acronimo,id)
+    sql = 'UPDATE instituto SET nome=%s, acronimo=%s WHERE id='+str(id)
+    val = (nome,acronimo)
     cursor.execute(sql,val)
     conexao.commit()
 
