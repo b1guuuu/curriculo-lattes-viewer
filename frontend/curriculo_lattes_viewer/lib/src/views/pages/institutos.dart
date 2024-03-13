@@ -1,7 +1,8 @@
 import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
 import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
-import 'package:curriculo_lattes_viewer/src/views/data_source/institutos_data_source.dart';
 import 'package:flutter/material.dart';
+import 'package:paged_datatable/paged_datatable.dart';
+import 'package:quickalert/quickalert.dart';
 
 class InstitutosPage extends StatefulWidget {
   static const rota = '/institutos';
@@ -14,42 +15,17 @@ class InstitutosPage extends StatefulWidget {
   }
 }
 
-final List<Map<String, dynamic>> _opcoesDropdown = [
-  {'texto': 'Todos', 'valor': 'nome = ? OR acronimo = ?'},
-  {'texto': 'Nome', 'valor': 'nome = ?'},
-  {'texto': 'Acrônimo', 'valor': 'acronimo = ?'},
-];
-
 class InstitutosPageState extends State<InstitutosPage> {
-  String _valorDropdown = _opcoesDropdown.first['valor'];
-  List<Instituto> _institutos = [];
-  InstitutosDataSource _institutosDataSource =
-      InstitutosDataSource(institutos: [], larguraTabela: 1080);
   final InstitutosController _controller = InstitutosController();
-  final TextEditingController _termoTFController = TextEditingController();
   final TextEditingController _codigoTFController = TextEditingController();
   final TextEditingController _nomeTFController = TextEditingController();
   final TextEditingController _acronimoTFController = TextEditingController();
 
+  final _tableController = PagedDataTableController<String, int, Instituto>();
+
   @override
   void initState() {
     super.initState();
-    _listaInstitutos();
-  }
-
-  Future<void> _listaInstitutos() async {
-    var temp = await _controller.listar();
-    setState(() {
-      _institutos = temp;
-    });
-  }
-
-  void _inicializaInstitutoDataSource() {
-    setState(() {
-      _institutosDataSource = InstitutosDataSource(
-          institutos: _institutos,
-          larguraTabela: MediaQuery.of(context).size.width * 0.9);
-    });
   }
 
   void _defineTextControllersNovoInstituto() {
@@ -60,14 +36,15 @@ class InstitutosPageState extends State<InstitutosPage> {
     });
   }
 
-  void _defineTextControllersEditarInstituto(int indexInstituto) {
+  void _defineTextControllersEditarInstituto() {
+    var institutoSelecionado = _tableController.getSelectedRows().first;
     setState(() {
       _codigoTFController.value =
-          TextEditingValue(text: _institutos[indexInstituto].id.toString());
+          TextEditingValue(text: institutoSelecionado.id.toString());
       _nomeTFController.value =
-          TextEditingValue(text: _institutos[indexInstituto].nome);
+          TextEditingValue(text: institutoSelecionado.nome);
       _acronimoTFController.value =
-          TextEditingValue(text: _institutos[indexInstituto].acronimo);
+          TextEditingValue(text: institutoSelecionado.acronimo);
     });
   }
 
@@ -99,16 +76,12 @@ class InstitutosPageState extends State<InstitutosPage> {
             ),
             actions: [
               FilledButton(
-                onPressed: () => {
-                  if (_codigoTFController.value.text.isEmpty)
-                    {
-                      _controller
-                          .inserir(_nomeTFController.value.text,
-                              _acronimoTFController.value.text)
-                          .then((value) => Navigator.pop(context))
-                    }
-                  else
-                    {}
+                onPressed: () async {
+                  if (_codigoTFController.value.text.isEmpty) {
+                    await _controller.inserir(_nomeTFController.value.text,
+                        _acronimoTFController.value.text);
+                  } else {}
+                  Navigator.of(context).pop();
                 },
                 child: const Text('Gravar'),
               ),
@@ -120,111 +93,123 @@ class InstitutosPageState extends State<InstitutosPage> {
         });
   }
 
+  Future<void> _excluirInstitutosSelecionados() async {
+    var institutosSelecionados = _tableController.getSelectedRows();
+    institutosSelecionados.forEach((Instituto instituto) async {
+      await _controller.deletar(instituto.id);
+      _tableController.removeRow(instituto.id);
+    });
+  }
+
+  @override
+  void dispose() {
+    _tableController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    _inicializaInstitutoDataSource();
     return Scaffold(
       appBar: AppBar(
         title: const Text('Institutos'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Center(
-          child: Container(
-            color: Colors.grey,
-            width: MediaQuery.of(context).size.width * 0.9,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Row(
-                    children: [
-                      Row(
-                        children: [
-                          const Text('Termo: '),
-                          TextField(
-                            decoration: const InputDecoration(
-                                hintText: 'Digite o título...',
-                                border: InputBorder.none,
-                                constraints: BoxConstraints(
-                                    maxHeight: 200, maxWidth: 200)),
-                            controller: _termoTFController,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      Row(
-                        children: [
-                          const Text('Campo: '),
-                          DropdownButton(
-                            value: _valorDropdown,
-                            onChanged: (valor) {
-                              setState(() {
-                                _valorDropdown = valor!;
-                              });
-                            },
-                            items: _opcoesDropdown
-                                .map<DropdownMenuItem<dynamic>>((valor) {
-                              return DropdownMenuItem(
-                                value: valor['valor'],
-                                child: Text(valor['texto']),
-                              );
-                            }).toList(),
-                          )
-                        ],
-                      ),
-                      const SizedBox(
-                        width: 10,
-                      ),
-                      FilledButton(
-                          onPressed: () => print('click'),
-                          child: const Text('Aplicar'))
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.all(10),
-                  child: Row(
-                    children: [Text('Institutos:')],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: PaginatedDataTable(
-                    header: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: FilledButton(
-                              onPressed: () async {
-                                _defineTextControllersNovoInstituto();
-                                await _modalBuilder(context);
-                                await _listaInstitutos();
-                                _inicializaInstitutoDataSource();
-                              },
-                              child: const Text('Incluir')),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: FilledButton(
-                              onPressed: () => print('Excluir'),
-                              child: const Text('Excluir')),
-                        ),
-                      ],
-                    ),
-                    columns: const <DataColumn>[
-                      DataColumn(label: Text('Nome')),
-                      DataColumn(label: Text('Acronimo'))
-                    ],
-                    source: _institutosDataSource,
-                  ),
-                )
-              ],
+      body: Container(
+        color: const Color.fromARGB(255, 208, 208, 208),
+        padding: const EdgeInsets.all(20.0),
+        child: PagedDataTable<String, int, Instituto>(
+          rowsSelectable: true,
+          idGetter: (instituto) => instituto.id,
+          controller: _tableController,
+          fetchPage: (pageToken, pageSize, sortBy, filtering) async {
+            print(pageToken);
+            print(pageSize);
+            print(sortBy);
+            print(filtering);
+            var temp = await _controller.listar();
+            return PaginationResult.items(elements: temp, nextPageToken: 'abc');
+          },
+          initialPage: '',
+          columns: [
+            TableColumn(
+                id: "nomeFiltro",
+                title: "Nome",
+                cellBuilder: (instituto) => Text(instituto.nome),
+                sortable: true),
+            TableColumn(
+                id: "acronimoFiltro",
+                title: "Acronimo",
+                cellBuilder: (instituto) => Text(instituto.acronimo),
+                sortable: true),
+          ],
+          filters: [
+            TextTableFilter(
+                chipFormatter: (texto) => texto,
+                id: "nomeFiltro",
+                title: "Filtrar por nome"),
+            TextTableFilter(
+                chipFormatter: (texto) => texto,
+                id: "acronimoFiltro",
+                title: "Filtrar por acronimo"),
+          ],
+          menu: PagedDataTableFilterBarMenu(items: [
+            FilterMenuItem(
+              title: const Text("Adicionar instituto"),
+              onTap: () async {
+                _defineTextControllersNovoInstituto();
+                await _modalBuilder(context);
+                await _tableController.refresh();
+              },
             ),
-          ),
+            const FilterMenuDivider(),
+            FilterMenuItem(
+              title: const Text("Editar selecionado"),
+              onTap: () async {
+                if (_tableController.getSelectedRows().isEmpty) {
+                  QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.error,
+                      text: "Nenhum instituto foi selecionado");
+                } else {
+                  if (_tableController.getSelectedRows().length > 1) {
+                    QuickAlert.show(
+                        context: context,
+                        type: QuickAlertType.warning,
+                        text: "Selecione apenas 1 instituto");
+                  } else {
+                    _defineTextControllersEditarInstituto();
+                    await _modalBuilder(context);
+                    await _tableController.refresh();
+                  }
+                }
+              },
+            ),
+            const FilterMenuDivider(),
+            FilterMenuItem(
+                title: const Text("Excluir selecionados"),
+                onTap: () {
+                  if (_tableController.getSelectedRows().isEmpty) {
+                    QuickAlert.show(
+                        context: context,
+                        type: QuickAlertType.warning,
+                        text: "Selecione pelo menos 1 instituto");
+                  } else {
+                    QuickAlert.show(
+                        context: context,
+                        type: QuickAlertType.confirm,
+                        text:
+                            'Deseja excluir ${_tableController.getSelectedRows().length} institutos?',
+                        confirmBtnText: 'Confirmar',
+                        cancelBtnText: 'Cancelar',
+                        confirmBtnColor: Colors.red,
+                        title: 'Você tem certeza?',
+                        onConfirmBtnTap: () async {
+                          await _excluirInstitutosSelecionados();
+                          Navigator.of(context).pop();
+                        });
+                  }
+                }),
+            const FilterMenuDivider(),
+          ]),
         ),
       ),
     );

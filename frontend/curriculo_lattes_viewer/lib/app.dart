@@ -1,34 +1,41 @@
-import 'package:curriculo_lattes_viewer/src/controllers/estado_global_controller.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/institutos.dart';
 import 'package:flutter/material.dart';
+
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:paged_datatable/paged_datatable.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-        animation: EstadoGlobalController.instancia,
-        builder: (context, child) {
-          return MaterialApp(
-            debugShowCheckedModeBanner: false,
-            // theme: ThemeData.dark(),
-            initialRoute: InstitutosPage.rota,
-            home: const InstitutosPage(),
-            onGenerateRoute: (configuracoes) {
-              return null;
-              if (configuracoes.name == InstitutosPage.rota ||
-                  configuracoes.name == '' ||
-                  configuracoes.name == '/') {
-                return MaterialPageRoute(builder: (context) {
-                  return const InstitutosPage();
-                });
-              }
-
-              assert(false, 'Need to implement ${configuracoes.name}');
-              return null;
-            },
-          );
+    return MaterialApp(
+      localizationsDelegates: const [
+        PagedDataTableLocalization.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale("en")],
+      locale: const Locale("en"),
+      title: 'Curriculo Lattes Viewer',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+          colorScheme: const ColorScheme.light(
+              primary: Colors.deepPurple, secondary: Colors.teal),
+          cardTheme: CardTheme(
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
+          popupMenuTheme: PopupMenuThemeData(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)))),
+      home: const InstitutosPage(),
+      onGenerateRoute: (configuracoes) {
+        return MaterialPageRoute(builder: (context) {
+          return const InstitutosPage();
         });
+      },
+    );
   }
 }

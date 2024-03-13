@@ -26,4 +26,10 @@ class Instituto {
   String toString() {
     return toMap().toString();
   }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is Instituto ? other.id == id : false;
 }

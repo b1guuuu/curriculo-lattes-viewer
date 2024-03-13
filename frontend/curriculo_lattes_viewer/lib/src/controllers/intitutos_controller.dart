@@ -10,7 +10,6 @@ class InstitutosController {
   Future<List<Instituto>> listar() async {
     Response respostaRequisicao = await http.get(Uri.parse('$_baseURL/listar'));
     var respostaJson = jsonDecode(respostaRequisicao.body);
-    print(respostaJson);
     List<Instituto> institutos = [];
     for (var institutoJson in respostaJson) {
       institutos.add(Instituto.fromJson(institutoJson));
