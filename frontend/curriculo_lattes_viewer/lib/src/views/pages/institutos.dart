@@ -120,21 +120,22 @@ class InstitutosPageState extends State<InstitutosPage> {
           controller: _tableController,
           fetchPage: (pageToken, pageSize, sortBy, filtering) async {
             print(pageToken);
-            print(pageSize);
-            print(sortBy);
-            print(filtering);
-            var temp = await _controller.listar();
+            var temp = await _controller.filtrar(
+                filtering.valueOrNullAs<String>('nome'),
+                filtering.valueOrNullAs<String>('acronimo'),
+                sortBy?.columnId,
+                (sortBy?.descending ?? false) ? 'ASC' : 'DESC');
             return PaginationResult.items(elements: temp, nextPageToken: 'abc');
           },
           initialPage: '',
           columns: [
             TableColumn(
-                id: "nomeFiltro",
+                id: "nome",
                 title: "Nome",
                 cellBuilder: (instituto) => Text(instituto.nome),
                 sortable: true),
             TableColumn(
-                id: "acronimoFiltro",
+                id: "acronimo",
                 title: "Acronimo",
                 cellBuilder: (instituto) => Text(instituto.acronimo),
                 sortable: true),
@@ -142,11 +143,11 @@ class InstitutosPageState extends State<InstitutosPage> {
           filters: [
             TextTableFilter(
                 chipFormatter: (texto) => texto,
-                id: "nomeFiltro",
+                id: "nome",
                 title: "Filtrar por nome"),
             TextTableFilter(
                 chipFormatter: (texto) => texto,
-                id: "acronimoFiltro",
+                id: "acronimo",
                 title: "Filtrar por acronimo"),
           ],
           menu: PagedDataTableFilterBarMenu(items: [
