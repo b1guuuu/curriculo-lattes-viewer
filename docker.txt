@@ -1,0 +1,7 @@
+docker run --name mysql \                                                                                                                            ✔ 
+-e MYSQL_ROOT_PASSWORD=root \
+-e MYSQL_DATABASE=dbcurriculo \
+-e MYSQL_USER=igor \
+-e MYSQL_PASSWORD=root \
+-p 3306:3306 \
+-d mysql:latest
