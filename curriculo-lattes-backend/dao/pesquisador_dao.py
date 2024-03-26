@@ -22,22 +22,22 @@ class PesquisadorDao:
     # READ
     def get_all(self):
         self.cursor.execute('SELECT * FROM pesquisador')
-        resultado = cursor.fetchall()
+        resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
     def get_all_id(self):
         self.cursor.execute('SELECT id FROM pesquisador')
-        resultado = cursor.fetchall()
+        resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
     def get_all_name(self):
         self.cursor.execute('SELECT nome FROM pesquisador')
-        resultado = cursor.fetchall()
+        resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
     def get_all_id_instituto(self):
         self.cursor.execute('SELECT idInstituto FROM pesquisador')
-        resultado = cursor.fetchall()
+        resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
     # Delete
