@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS instituto (
 );
 
 CREATE TABLE IF NOT EXISTS pesquisador (
-    id INT NOT NULL,
+    id VARCHAR(255) NOT NULL,
     nome VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
     idInstituto INT NOT NULL,
