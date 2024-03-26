@@ -1,4 +1,6 @@
-Flask
+Flask==2.3.0
+flask_api==3.1
+flask_cors==4.0.0
 mysql-connector-python
-flask-cors
-xmltodict
+xmltodict==0.13.0
+Werkzeug==2.3.0
