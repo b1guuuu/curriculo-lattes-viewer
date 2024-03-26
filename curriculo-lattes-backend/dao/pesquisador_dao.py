@@ -1,45 +1,47 @@
+from model.pesquisador import Pesquisador
 from config.configdb import conexao
 
 class PesquisadorDao:
     cursor = conexao.cursor()
 
+    def mysql_result_to_object_list(self, mysql_result=[]):
+        object_result = []
+        for mysql_object in mysql_result:
+            object_result.append(
+                Pesquisador(mysql_object[0], mysql_object[1], mysql_object[2], mysql_object[3]))
+        return object_result
+
+
     # CREATE
-    def create(id=None,nome=None,idIdentificador=None):
-        sql = 'INSERT INTO pesquisador (id, nome, idIdentificador) VALUES(%s, %s, %s)'
-        val = (id,nome,idIdentificador)
-        cursor.execute(sql,val)
+    def create(self,id=None,nome=None,idInstituto=None):
+        sql = 'INSERT INTO pesquisador (id, nome, idInstituto) VALUES(%s, %s, %s)'
+        val = (id,nome,idInstituto)
+        self.cursor.execute(sql,val)
         conexao.commit()
 
     # READ
-    def getAll():
-        cursor.execute('SELECT * FROM pesquisador')
+    def get_all(self):
+        self.cursor.execute('SELECT * FROM pesquisador')
         resultado = cursor.fetchall()
-        return resultado
+        return self.mysql_result_to_object_list(resultado)
 
-    def getAllId():
-        cursor.execute('SELECT id FROM pesquisador')
+    def get_all_id(self):
+        self.cursor.execute('SELECT id FROM pesquisador')
         resultado = cursor.fetchall()
-        return resultado
+        return self.mysql_result_to_object_list(resultado)
 
-    def getAllName():
-        cursor.execute('SELECT nome FROM pesquisador')
+    def get_all_name(self):
+        self.cursor.execute('SELECT nome FROM pesquisador')
         resultado = cursor.fetchall()
-        return resultado
+        return self.mysql_result_to_object_list(resultado)
 
-    def getAllIdInstituto():
-        cursor.execute('SELECT idInstituto FROM pesquisador')
+    def get_all_id_instituto(self):
+        self.cursor.execute('SELECT idInstituto FROM pesquisador')
         resultado = cursor.fetchall()
-        return resultado
-
-    # Update
-    def update(id=None,nome=None):
-        sql = 'UPDATE pesquisador SET id=%s, nome=%s WHERE id='+str(id)
-        val = (id,nome)
-        cursor.execute(sql,val)
-        conexao.commit()
+        return self.mysql_result_to_object_list(resultado)
 
     # Delete
-    def delete(id):
+    def delete(self, id):
         comando = ('DELETE FROM pesquisador WHERE id ='+str(id))
-        cursor.execute(comando)
+        self.cursor.execute(comando)
         conexao.commit()

@@ -1,39 +1,47 @@
+from model.instituto import Instituto
 from config.configdb import conexao
 
 class InstitutoDao:
     cursor = conexao.cursor()
 
+    def mysql_result_to_object_list(self, mysql_result=[]):
+        object_result = []
+        for mysql_object in mysql_result:
+            object_result.append(
+                Instituto(mysql_object[0], mysql_object[1], mysql_object[2]))
+        return object_result
+
     # CREATE
-    def create(nome=None,acronimo=None):
+    def create(self, nome=None, acronimo=None):
         sql = 'INSERT INTO instituto (nome, acronimo) VALUES(%s, %s)'
-        val = (nome,acronimo)
-        cursor.execute(sql,val)
+        val = (nome, acronimo)
+        self.cursor.execute(sql, val)
         conexao.commit()
 
     # READ
-    def getAll():
-        cursor.execute('SELECT * FROM instituto')
-        resultado = cursor.fetchall()
-        return resultado
+    def get_all(self):
+        self.cursor.execute('SELECT * FROM instituto')
+        resultado = self.cursor.fetchall()
+        return self.mysql_result_to_object_list(resultado)
 
     # UPDATE
-    def update(id=None,nome=None,acronimo=None):
+    def update(self, id=None, nome=None, acronimo=None):
         sql = 'UPDATE instituto SET nome=%s, acronimo=%s WHERE id='+str(id)
-        val = (nome,acronimo)
-        cursor.execute(sql,val)
+        val = (nome, acronimo)
+        self.cursor.execute(sql, val)
         conexao.commit()
 
     # DELETE
-    def delete(id):
+    def delete(self, id):
         comando = ('DELETE FROM instituto WHERE id ='+str(id))
-        cursor.execute(comando)
+        self.cursor.execute(comando)
         conexao.commit()
 
     # FILTER
-    def filter(nome=None,acronimo=None,orderBy=None,sort=None):
+    def filter(self, nome=None, acronimo=None, orderBy=None, sort=None):
         sql = 'SELECT * FROM instituto '
         if nome != 'null' and acronimo != 'null':
-            sql += "WHERE nome LIKE '%" + nome + "%' AND acronimo LIKE '%" + acronimo +"%' "
+            sql += "WHERE nome LIKE '%" + nome + "%' AND acronimo LIKE '%" + acronimo + "%' "
         elif nome != 'null':
             sql += "WHERE nome LIKE '%" + nome + "%' "
         elif acronimo != 'null':
@@ -41,7 +49,7 @@ class InstitutoDao:
 
         if orderBy != 'null':
             sql += "ORDER BY " + orderBy + " " + sort
-            
-        cursor.execute(sql)
-        resultado = cursor.fetchall()
-        return resultado
+
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return self.mysql_result_to_object_list(resultado)
