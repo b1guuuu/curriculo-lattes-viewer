@@ -1,9 +1,11 @@
 import os
+import sys
 import xmltodict
 
 class XmlManager:
-    def __init__(self, xml_base_directory = ''):
-        self.xml_base_directory = xml_base_directory
+    def __init__(self):
+        root_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
+        self.xml_base_directory = os.path.join(root_directory, 'assets', 'xml')
 
     def get_all_xml_names(self):
         return os.listdir(self.xml_base_directory)
