@@ -1,4 +1,6 @@
+import 'package:curriculo_lattes_viewer/src/views/pages/inicio.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/institutos.dart';
+import 'package:curriculo_lattes_viewer/src/views/pages/pesquisadores.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -30,11 +32,10 @@ class App extends StatelessWidget {
           popupMenuTheme: PopupMenuThemeData(
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(30)))),
-      home: const InstitutosPage(),
-      onGenerateRoute: (configuracoes) {
-        return MaterialPageRoute(builder: (context) {
-          return const InstitutosPage();
-        });
+      home: const InicioPage(),
+      routes: {
+        InstitutosPage.rota: (context) => const InstitutosPage(),
+        PesquisadoresPage.rota: (context) => const PesquisadoresPage()
       },
     );
   }
