@@ -29,10 +29,39 @@ def create(codigo, id_instituto):
         xml_dictionary = xml_manager.read_xml_in_base_directory(xml_file_name)
         pesquisador_id = xml_dictionary['CURRICULO-VITAE']['@NUMERO-IDENTIFICADOR']
         pesquisador_nome = xml_dictionary['CURRICULO-VITAE']['DADOS-GERAIS']['@NOME-COMPLETO']
-        print(pesquisador_id)
-        print(pesquisador_nome)
-        print(id_instituto)
         pesquisador_dao.create(pesquisador_id, pesquisador_nome, id_instituto)
         return 'Pesquisador cadastrado com sucesso', status.HTTP_201_CREATED
+    else:
+        return f'Não há arquivo com o código {codigo}', status.HTTP_404_NOT_FOUND
+
+# Função para Deletar de acordo com o id
+@pesquisador_blueprint.route('/deletar/<id>', methods=['DELETE'])
+@cross_origin()
+def delete(id):
+    pesquisador_dao.delete(id)
+    return json.dumps("Deletado com sucesso")
+
+@pesquisador_blueprint.route('/filtrar/', methods=['GET'])
+@cross_origin()
+def filter():
+    nomePesquisador = request.args.get('nomePesquisador')
+    nomeInstituto = request.args.get('nomeInstituto')
+    orderBy = request.args.get('orderBy')
+    sort = request.args.get('sort')
+    pesquisadores = pesquisador_dao.filter(nomePesquisador, nomeInstituto, orderBy, sort)
+    return json.dumps([ob.__dict__ for ob in pesquisadores])
+
+
+@pesquisador_blueprint.route('/arquivo/<codigo>', methods=['GET'])
+@cross_origin()
+def buscarArquivo(codigo):
+    xml_file_name = f'{codigo}.xml'
+    print(xml_file_name)
+    xml_manager = XmlManager()
+    xml_names = xml_manager.get_all_xml_names()
+    if xml_file_name in xml_names:
+        xml_dictionary = xml_manager.read_xml_in_base_directory(xml_file_name)
+        pesquisador_nome = xml_dictionary['CURRICULO-VITAE']['DADOS-GERAIS']['@NOME-COMPLETO']
+        return {'nome': pesquisador_nome}, status.HTTP_200_OK
     else:
         return f'Não há arquivo com o código {codigo}', status.HTTP_404_NOT_FOUND

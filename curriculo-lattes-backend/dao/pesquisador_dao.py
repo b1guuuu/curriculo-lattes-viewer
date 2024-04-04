@@ -45,3 +45,26 @@ class PesquisadorDao:
         comando = ('DELETE FROM pesquisador WHERE id ='+str(id))
         self.cursor.execute(comando)
         conexao.commit()
+
+    # FILTER
+    def filter(self, nomePesquisador=None, nomeInstituto=None, orderBy=None, sort=None):
+        print(nomePesquisador)
+        print(nomeInstituto)
+        print(orderBy)
+        print(sort)
+
+        sql = 'SELECT pesquisador.* FROM pesquisador '
+        sql += "INNER JOIN instituto ON pesquisador.idInstituto = instituto.id "
+        if nomePesquisador != 'null' and nomeInstituto != 'null':
+            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' AND instituto.nome LIKE '%" + nomeInstituto + "%' "
+        elif nomePesquisador != 'null':
+            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' "
+        elif nomeInstituto != 'null':
+            sql += "WHERE instituto.nome LIKE '%" + nomeInstituto + "%' "
+
+        if orderBy != 'null':
+            sql += "ORDER BY " + orderBy + " " + sort
+
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return self.mysql_result_to_object_list(resultado)
