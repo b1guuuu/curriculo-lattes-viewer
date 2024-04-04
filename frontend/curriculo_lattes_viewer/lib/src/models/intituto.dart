@@ -6,13 +6,13 @@ class Instituto {
   Instituto({required this.nome, required this.acronimo});
 
   Instituto.fromJson(dynamic json)
-      : id = json[0],
-        nome = json[1],
-        acronimo = json[2];
+      : id = json['id'],
+        nome = json['nome'],
+        acronimo = json['acronimo'];
 
   Instituto.fromJsonSemId(dynamic json)
-      : nome = json[1],
-        acronimo = json[2];
+      : nome = json['nome'],
+        acronimo = json['acronimo'];
 
   Map<String, dynamic> toMap() {
     return {"id": id, "nome": nome, "acronimo": acronimo};

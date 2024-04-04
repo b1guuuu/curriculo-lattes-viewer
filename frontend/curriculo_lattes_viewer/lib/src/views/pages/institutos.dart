@@ -1,5 +1,7 @@
 import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
 import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
+import 'package:curriculo_lattes_viewer/src/views/components/informacoes_instituto_dialog.dart';
+import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
 import 'package:flutter/material.dart';
 import 'package:paged_datatable/paged_datatable.dart';
 import 'package:quickalert/quickalert.dart';
@@ -52,49 +54,10 @@ class InstitutosPageState extends State<InstitutosPage> {
     return showDialog(
         context: context,
         builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Novo Instituto'),
-            content: Column(
-              children: [
-                TextField(
-                  decoration: const InputDecoration(
-                      hintText: 'Código', border: OutlineInputBorder()),
-                  readOnly: true,
-                  controller: _codigoTFController,
-                ),
-                TextField(
-                  decoration: const InputDecoration(
-                      hintText: 'Nome', border: OutlineInputBorder()),
-                  controller: _nomeTFController,
-                ),
-                TextField(
-                  decoration: const InputDecoration(
-                      hintText: 'Acronimo', border: OutlineInputBorder()),
-                  controller: _acronimoTFController,
-                )
-              ],
-            ),
-            actions: [
-              FilledButton(
-                onPressed: () async {
-                  if (_codigoTFController.value.text.isEmpty) {
-                    await _controller.inserir(_nomeTFController.value.text,
-                        _acronimoTFController.value.text);
-                  } else {
-                    await _controller.atualizar(
-                        int.parse(_codigoTFController.text),
-                        _nomeTFController.value.text,
-                        _acronimoTFController.value.text);
-                  }
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Gravar'),
-              ),
-              FilledButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar')),
-            ],
-          );
+          return InformacoesInstitutoDialog(
+              codigoTFController: _codigoTFController,
+              nomeTFController: _nomeTFController,
+              acronimoTFController: _acronimoTFController);
         });
   }
 
@@ -115,6 +78,9 @@ class InstitutosPageState extends State<InstitutosPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Institutos'),
+      ),
+      drawer: const Drawer(
+        child: Navegacao(),
       ),
       body: Container(
         color: const Color.fromARGB(255, 208, 208, 208),
@@ -138,12 +104,14 @@ class InstitutosPageState extends State<InstitutosPage> {
                 id: "nome",
                 title: "Nome",
                 cellBuilder: (instituto) => Text(instituto.nome),
-                sortable: true),
+                sortable: true,
+                sizeFactor: 0.7),
             TableColumn(
                 id: "acronimo",
                 title: "Acronimo",
                 cellBuilder: (instituto) => Text(instituto.acronimo),
-                sortable: true),
+                sortable: true,
+                sizeFactor: 0.2),
           ],
           filters: [
             TextTableFilter(
