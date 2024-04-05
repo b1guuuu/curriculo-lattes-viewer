@@ -7,7 +7,7 @@ import 'package:paged_datatable/paged_datatable.dart';
 import 'package:quickalert/quickalert.dart';
 
 class InstitutosPage extends StatefulWidget {
-  static const rota = '/institutos';
+  static const rota = 'institutos';
 
   const InstitutosPage({super.key});
 
@@ -23,7 +23,7 @@ class InstitutosPageState extends State<InstitutosPage> {
   final TextEditingController _nomeTFController = TextEditingController();
   final TextEditingController _acronimoTFController = TextEditingController();
 
-  final _tableController = PagedDataTableController<String, int, Instituto>();
+  final _tableController = PagedDataTableController<int, int, Instituto>();
 
   @override
   void initState() {
@@ -85,20 +85,28 @@ class InstitutosPageState extends State<InstitutosPage> {
       body: Container(
         color: const Color.fromARGB(255, 208, 208, 208),
         padding: const EdgeInsets.all(20.0),
-        child: PagedDataTable<String, int, Instituto>(
+        child: PagedDataTable<int, int, Instituto>(
           rowsSelectable: true,
           idGetter: (instituto) => instituto.id,
           controller: _tableController,
           fetchPage: (pageToken, pageSize, sortBy, filtering) async {
-            print(pageToken);
             var temp = await _controller.filtrar(
                 filtering.valueOrNullAs<String>('nome'),
                 filtering.valueOrNullAs<String>('acronimo'),
                 sortBy?.columnId,
-                (sortBy?.descending ?? false) ? 'ASC' : 'DESC');
-            return PaginationResult.items(elements: temp, nextPageToken: 'abc');
+                (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
+                pageToken,
+                pageSize);
+            var totalInstitutos = await _controller.contar(
+                filtering.valueOrNullAs<String>('nome'),
+                filtering.valueOrNullAs<String>('acronimo'));
+            var nextPageToken = pageToken + pageSize;
+            return PaginationResult.items(
+                elements: temp,
+                nextPageToken:
+                    nextPageToken > totalInstitutos ? null : nextPageToken);
           },
-          initialPage: '',
+          initialPage: 1,
           columns: [
             TableColumn(
                 id: "nome",

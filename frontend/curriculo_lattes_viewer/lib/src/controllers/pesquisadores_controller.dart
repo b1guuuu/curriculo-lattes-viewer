@@ -25,14 +25,18 @@ class PesquisadoresController {
     await http.delete(Uri.parse('$_baseURL/deletar/$id'));
   }
 
-  Future<List<Pesquisador>> filtrar(String? nomePesquisador,
-      String? nomeInstituto, String? orderBy, String? sort) async {
+  Future<List<Pesquisador>> filtrar(
+      String? nomePesquisador,
+      String? nomeInstituto,
+      String? orderBy,
+      String? sort,
+      int posicaoInicial,
+      int quantidadeItens) async {
     try {
       var uri = Uri.parse(
-          '$_baseURL/filtrar?nomePesquisador=$nomePesquisador&nomeInstituto=$nomeInstituto&orderBy=$orderBy&sort=$sort');
+          '$_baseURL/filtrar?nomePesquisador=$nomePesquisador&nomeInstituto=$nomeInstituto&orderBy=$orderBy&sort=$sort&posicaoInicial=$posicaoInicial&quantidadeItens=$quantidadeItens');
       Response respostaRequisicao = await http.get(uri);
       var respostaJson = jsonDecode(respostaRequisicao.body);
-      print(respostaJson.toString());
       List<Pesquisador> pesquisadores = [];
       for (var pesquisadorJson in respostaJson) {
         pesquisadores.add(Pesquisador.fromJson(pesquisadorJson));
@@ -51,11 +55,23 @@ class PesquisadoresController {
       var uri = Uri.parse('$_baseURL/arquivo/$codigo');
       Response respostaRequisicao = await http.get(uri);
       var respostaJson = jsonDecode(respostaRequisicao.body);
-      print(respostaJson.toString());
       return respostaJson['nome'].toString();
     } catch (e) {
       print(e.toString());
       return 'N/A';
+    }
+  }
+
+  Future<int> contar(String? nomePesquisador, String? nomeInstituto) async {
+    try {
+      var uri = Uri.parse(
+          '$_baseURL/contar?nomePesquisador=$nomePesquisador&nomeInstituto=$nomeInstituto');
+      Response respostaRequisicao = await http.get(uri);
+      var respostaJson = jsonDecode(respostaRequisicao.body);
+      return respostaJson['totalPesquisadores'];
+    } catch (e) {
+      print(e.toString());
+      return 0;
     }
   }
 }

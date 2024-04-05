@@ -2,7 +2,7 @@ import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
 import 'package:flutter/material.dart';
 
 class InicioPage extends StatefulWidget {
-  static const rota = '/';
+  static const rota = '';
 
   const InicioPage({super.key});
 

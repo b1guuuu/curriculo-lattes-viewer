@@ -30,10 +30,15 @@ class InstitutosController {
   }
 
   Future<List<Instituto>> filtrar(
-      String? nome, String? acronimo, String? orderBy, String? sort) async {
+      String? nome,
+      String? acronimo,
+      String? orderBy,
+      String? sort,
+      int posicaoInicial,
+      int quantidadeItens) async {
     try {
       var uri = Uri.parse(
-          '$_baseURL/filtrar?nome=$nome&acronimo=$acronimo&orderBy=$orderBy&sort=$sort');
+          '$_baseURL/filtrar?nome=$nome&acronimo=$acronimo&orderBy=$orderBy&sort=$sort&posicaoInicial=$posicaoInicial&quantidadeItens=$quantidadeItens');
       Response respostaRequisicao = await http.get(uri);
       var respostaJson = jsonDecode(respostaRequisicao.body);
       List<Instituto> institutos = [];
@@ -44,6 +49,21 @@ class InstitutosController {
     } catch (e) {
       print(e.toString());
       return [];
+    }
+  }
+
+  Future<int> contar(
+    String? nome,
+    String? acronimo,
+  ) async {
+    try {
+      var uri = Uri.parse('$_baseURL/contar?nome=$nome&acronimo=$acronimo');
+      Response respostaRequisicao = await http.get(uri);
+      var respostaJson = jsonDecode(respostaRequisicao.body);
+      return respostaJson['totalInstitutos'];
+    } catch (e) {
+      print(e.toString());
+      return 0;
     }
   }
 }

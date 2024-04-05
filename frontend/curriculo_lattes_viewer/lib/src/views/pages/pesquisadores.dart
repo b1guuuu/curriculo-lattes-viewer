@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
 import 'package:curriculo_lattes_viewer/src/controllers/pesquisadores_controller.dart';
 import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
@@ -11,7 +9,7 @@ import 'package:paged_datatable/paged_datatable.dart';
 import 'package:quickalert/quickalert.dart';
 
 class PesquisadoresPage extends StatefulWidget {
-  static const rota = '/pesquisadores';
+  static const rota = 'pesquisadores';
 
   const PesquisadoresPage({super.key});
 
@@ -25,9 +23,6 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
   final PesquisadoresController _pesquisadoresController =
       PesquisadoresController();
   final InstitutosController _institutosController = InstitutosController();
-
-  final TextEditingController _codigoTFController = TextEditingController();
-  final TextEditingController _institutoTFController = TextEditingController();
 
   final _tableController = PagedDataTableController<int, String, Pesquisador>();
 
@@ -86,18 +81,21 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
           idGetter: (pesquisador) => pesquisador.id,
           controller: _tableController,
           fetchPage: (pageToken, pageSize, sortBy, filtering) async {
-            print(pageToken);
-            print(pageSize);
-            print(jsonEncode(sortBy.toString()));
-            print(jsonEncode(filtering.toString()));
             var temp = await _pesquisadoresController.filtrar(
                 filtering.valueOrNullAs<String>('pesquisador.nome'),
                 filtering.valueOrNullAs<String>('instituto.nome'),
                 sortBy?.columnId,
-                (sortBy?.descending ?? false) ? 'ASC' : 'DESC');
-            print('object');
+                (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
+                pageToken,
+                pageSize);
+            var totalPesquisadores = await _pesquisadoresController.contar(
+                filtering.valueOrNullAs<String>('pesquisador.nome'),
+                filtering.valueOrNullAs<String>('instituto.nome'));
+            var nextPageToken = pageToken + pageSize;
             return PaginationResult.items(
-                elements: temp, nextPageToken: pageToken + pageSize);
+                elements: temp,
+                nextPageToken:
+                    nextPageToken > totalPesquisadores ? null : nextPageToken);
           },
           initialPage: 1,
           columns: [

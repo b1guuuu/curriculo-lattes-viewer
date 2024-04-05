@@ -17,25 +17,36 @@ class InformacoesInstitutoDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: const Text('Novo Instituto'),
-      content: Column(
-        children: [
-          TextField(
-            decoration: const InputDecoration(
-                hintText: 'Código', border: OutlineInputBorder()),
-            readOnly: true,
-            controller: codigoTFController,
-          ),
-          TextField(
-            decoration: const InputDecoration(
-                hintText: 'Nome', border: OutlineInputBorder()),
-            controller: nomeTFController,
-          ),
-          TextField(
-            decoration: const InputDecoration(
-                hintText: 'Acronimo', border: OutlineInputBorder()),
-            controller: acronimoTFController,
-          )
-        ],
+      content: SizedBox(
+        width: 700,
+        height: 250,
+        child: Column(
+          children: [
+            TextField(
+              decoration: const InputDecoration(
+                  hintText: 'Código', border: OutlineInputBorder()),
+              readOnly: true,
+              controller: codigoTFController,
+            ),
+            const SizedBox(
+              height: 10.0,
+            ),
+            TextField(
+              decoration: const InputDecoration(
+                  hintText: 'Nome', border: OutlineInputBorder()),
+              controller: nomeTFController,
+            ),
+            const SizedBox(
+              height: 10.0,
+            ),
+            TextField(
+              decoration: const InputDecoration(
+                  hintText: 'Acronimo', border: OutlineInputBorder()),
+              controller: acronimoTFController,
+              maxLength: 10,
+            )
+          ],
+        ),
       ),
       actions: [
         FilledButton(
