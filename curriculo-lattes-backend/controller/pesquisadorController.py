@@ -48,7 +48,9 @@ def filter():
     nomeInstituto = request.args.get('nomeInstituto')
     orderBy = request.args.get('orderBy')
     sort = request.args.get('sort')
-    pesquisadores = pesquisador_dao.filter(nomePesquisador, nomeInstituto, orderBy, sort)
+    posicaoInicial = request.args.get('posicaoInicial')
+    quantidadeItens = request.args.get('quantidadeItens')
+    pesquisadores = pesquisador_dao.filter(nomePesquisador, nomeInstituto, orderBy, sort, posicaoInicial, quantidadeItens)
     return json.dumps([ob.__dict__ for ob in pesquisadores])
 
 
@@ -65,3 +67,11 @@ def buscarArquivo(codigo):
         return {'nome': pesquisador_nome}, status.HTTP_200_OK
     else:
         return f'Não há arquivo com o código {codigo}', status.HTTP_404_NOT_FOUND
+
+@pesquisador_blueprint.route('/contar/', methods=['GET'])
+@cross_origin()
+def count():
+    nomePesquisador = request.args.get('nomePesquisador')
+    nomeInstituto = request.args.get('nomeInstituto')
+    totalPesquisadores = pesquisador_dao.count(nomePesquisador, nomeInstituto)
+    return {'totalPesquisadores': totalPesquisadores}

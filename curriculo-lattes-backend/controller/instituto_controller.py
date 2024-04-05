@@ -42,5 +42,15 @@ def filter():
     acronimo = request.args.get('acronimo')
     orderBy = request.args.get('orderBy')
     sort = request.args.get('sort')
-    institutos = instituto_dao.filter(nome, acronimo, orderBy, sort)
+    posicaoInicial = request.args.get('posicaoInicial')
+    quantidadeItens = request.args.get('quantidadeItens')
+    institutos = instituto_dao.filter(nome, acronimo, orderBy, sort, posicaoInicial, quantidadeItens)
     return json.dumps([ob.__dict__ for ob in institutos])
+
+@instituto_blueprint.route('/contar/', methods=['GET'])
+@cross_origin()
+def count():
+    nome = request.args.get('nome')
+    acronimo = request.args.get('acronimo')
+    totalInstitutos = instituto_dao.count(nome, acronimo)
+    return {'totalInstitutos': totalInstitutos}

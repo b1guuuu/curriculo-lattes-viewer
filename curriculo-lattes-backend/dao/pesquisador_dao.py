@@ -47,12 +47,7 @@ class PesquisadorDao:
         conexao.commit()
 
     # FILTER
-    def filter(self, nomePesquisador=None, nomeInstituto=None, orderBy=None, sort=None):
-        print(nomePesquisador)
-        print(nomeInstituto)
-        print(orderBy)
-        print(sort)
-
+    def filter(self, nomePesquisador=None, nomeInstituto=None, orderBy=None, sort=None, posicaoInicial=1, quantidadeItens=100):
         sql = 'SELECT pesquisador.* FROM pesquisador '
         sql += "INNER JOIN instituto ON pesquisador.idInstituto = instituto.id "
         if nomePesquisador != 'null' and nomeInstituto != 'null':
@@ -61,10 +56,26 @@ class PesquisadorDao:
             sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' "
         elif nomeInstituto != 'null':
             sql += "WHERE instituto.nome LIKE '%" + nomeInstituto + "%' "
-
         if orderBy != 'null':
-            sql += "ORDER BY " + orderBy + " " + sort
+            sql += "ORDER BY " + orderBy + " " + sort + " "
+        
+        sql+='LIMIT ' + posicaoInicial + ', ' + quantidadeItens + ';'
 
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
+
+    # COUNT
+    def count(self, nomePesquisador=None, nomeInstituto=None):
+        sql = 'SELECT COUNT(pesquisador.id) FROM pesquisador '
+        sql += "INNER JOIN instituto ON pesquisador.idInstituto = instituto.id "
+        if nomePesquisador != 'null' and nomeInstituto != 'null':
+            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' AND instituto.nome LIKE '%" + nomeInstituto + "%' "
+        elif nomePesquisador != 'null':
+            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' "
+        elif nomeInstituto != 'null':
+            sql += "WHERE instituto.nome LIKE '%" + nomeInstituto + "%' "
+
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return resultado[0][0]
