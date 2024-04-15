@@ -106,7 +106,7 @@ class InstitutosPageState extends State<InstitutosPage> {
                 nextPageToken:
                     nextPageToken > totalInstitutos ? null : nextPageToken);
           },
-          initialPage: 1,
+          initialPage: 0,
           columns: [
             TableColumn(
                 id: "nome",
