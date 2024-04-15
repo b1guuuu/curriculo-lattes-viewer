@@ -51,6 +51,7 @@ def filter():
     posicaoInicial = request.args.get('posicaoInicial')
     quantidadeItens = request.args.get('quantidadeItens')
     pesquisadores = pesquisador_dao.filter(nomePesquisador, nomeInstituto, orderBy, sort, posicaoInicial, quantidadeItens)
+    print(pesquisadores)
     return json.dumps([ob.__dict__ for ob in pesquisadores])
 
 

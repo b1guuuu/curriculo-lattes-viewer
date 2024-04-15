@@ -48,9 +48,10 @@ class InstitutoDao:
             sql += "WHERE acronimo LIKE '%" + acronimo + "%' "
 
         if orderBy != 'null':
-            sql += "ORDER BY " + orderBy + " " + sort
+            sql += "ORDER BY " + orderBy + " " + sort + " "
 
         sql+='LIMIT ' + posicaoInicial + ', ' + quantidadeItens + ';'
+        print(sql)
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)

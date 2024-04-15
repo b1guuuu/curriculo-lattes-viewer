@@ -60,7 +60,7 @@ class PesquisadorDao:
             sql += "ORDER BY " + orderBy + " " + sort + " "
         
         sql+='LIMIT ' + posicaoInicial + ', ' + quantidadeItens + ';'
-
+        print(sql)
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
