@@ -1,4 +1,4 @@
-from model.pesquisador import Pesquisador
+from model.trabalho import Trabalho
 from config.configdb import conexao
 
 class TrabalhadoDao:
