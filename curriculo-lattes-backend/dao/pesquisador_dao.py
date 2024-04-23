@@ -42,7 +42,7 @@ class PesquisadorDao:
 
     # Delete
     def delete(self, id):
-        comando = ('DELETE FROM pesquisador WHERE id ='+str(id))
+        comando = ('DELETE FROM pesquisador WHERE id ='+id)
         self.cursor.execute(comando)
         conexao.commit()
 

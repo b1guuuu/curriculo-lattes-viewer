@@ -11,5 +11,23 @@ CREATE TABLE IF NOT EXISTS pesquisador (
     email VARCHAR(255) UNIQUE,
     idInstituto INT NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (idInstituto) REFERENCES instituto(id)
+    FOREIGN KEY (idInstituto) REFERENCES instituto(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS trabalho (
+    id INT NOT NULL AUTO_INCREMENT,
+    titulo VARCHAR(255) NOT NULL,
+    ano INT NOT NULL,
+    tipo VARCHAR(10) NOT NULL,
+    idPesquisador VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (idPesquisador) REFERENCES pesquisador(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS nomecitacao (
+    id INT NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(255) NOT NULL,
+    idTrabalho INT NOT NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (idTrabalho) REFERENCES trabalho(id) ON UPDATE CASCADE ON DELETE CASCADE
 );
