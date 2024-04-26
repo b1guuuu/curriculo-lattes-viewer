@@ -91,24 +91,49 @@ class CadastrarPesquisadorDialogState
                     text: 'Não foi selecionado um instituto',
                     confirmBtnText: 'Fechar');
               } else {
-                var nomePesquisador = await _controller
-                    .buscarNomePesquisadorPorCodigo(_idTFController.text);
-                QuickAlert.show(
+                try {
+                  var nomePesquisador = await _controller
+                      .buscarNomePesquisadorPorCodigo(_idTFController.text);
+
+                  QuickAlert.show(
+                      context: context,
+                      type: QuickAlertType.confirm,
+                      text:
+                          'Deseja mesmo incluir o Lattes ${_idTFController.text} de $nomePesquisador em ${_institutoSelecionado!.nome}?',
+                      confirmBtnText: 'Confirmar',
+                      cancelBtnText: 'Cancelar',
+                      confirmBtnColor: Colors.green,
+                      title: 'Você tem certeza?',
+                      onConfirmBtnTap: () async {
+                        try {
+                          await _controller.inserir(
+                              _idTFController.text, _institutoSelecionado!.id);
+                          Navigator.pop(context, true);
+                        } catch (e) {
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.error,
+                            text: e.toString(),
+                            confirmBtnText: 'Confirmar',
+                            cancelBtnText: 'Cancelar',
+                            confirmBtnColor: Colors.green,
+                            title: 'Erro ao inserir pesquisador',
+                          );
+                        }
+                      }).then((gravou) {
+                    if (gravou == true) Navigator.pop(context);
+                  });
+                } catch (e) {
+                  QuickAlert.show(
                     context: context,
-                    type: QuickAlertType.confirm,
-                    text:
-                        'Deseja mesmo incluir o Lattes ${_idTFController.text} de $nomePesquisador em ${_institutoSelecionado!.nome}?',
+                    type: QuickAlertType.error,
+                    text: e.toString(),
                     confirmBtnText: 'Confirmar',
                     cancelBtnText: 'Cancelar',
                     confirmBtnColor: Colors.green,
-                    title: 'Você tem certeza?',
-                    onConfirmBtnTap: () async {
-                      await _controller.inserir(
-                          _idTFController.text, _institutoSelecionado!.id);
-                      Navigator.of(context).pop(true);
-                    }).then((gravou) {
-                  if (gravou == true) Navigator.pop(context);
-                });
+                    title: 'Erro ao inserir pesquisador',
+                  );
+                }
               }
             }
           },

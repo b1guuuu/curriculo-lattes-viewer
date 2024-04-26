@@ -18,7 +18,11 @@ class PesquisadoresController {
   }
 
   Future<void> inserir(String id, int idInstituto) async {
-    await http.post(Uri.parse('$_baseURL/inserir/$id/$idInstituto'));
+    var resposta =
+        await http.post(Uri.parse('$_baseURL/inserir/$id/$idInstituto'));
+    if (resposta.statusCode != 201) {
+      throw Exception(resposta.body);
+    }
   }
 
   Future<void> deletar(String id) async {
@@ -51,15 +55,13 @@ class PesquisadoresController {
   Future<String> buscarNomePesquisadorPorCodigo(
     String codigo,
   ) async {
-    try {
-      var uri = Uri.parse('$_baseURL/arquivo/$codigo');
-      Response respostaRequisicao = await http.get(uri);
-      var respostaJson = jsonDecode(respostaRequisicao.body);
-      return respostaJson['nome'].toString();
-    } catch (e) {
-      print(e.toString());
-      return 'N/A';
+    var uri = Uri.parse('$_baseURL/arquivo/$codigo');
+    Response respostaRequisicao = await http.get(uri);
+    if (respostaRequisicao.statusCode != 200) {
+      throw Exception(respostaRequisicao.body);
     }
+    var respostaJson = jsonDecode(respostaRequisicao.body);
+    return respostaJson['nome'].toString();
   }
 
   Future<int> contar(String? nomePesquisador, String? nomeInstituto) async {

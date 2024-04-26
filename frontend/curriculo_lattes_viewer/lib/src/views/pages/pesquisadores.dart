@@ -88,12 +88,11 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
                 (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
                 pageToken,
                 pageSize);
-            print(temp);
             var totalPesquisadores = await _pesquisadoresController.contar(
                 filtering.valueOrNullAs<String>('pesquisador.nome'),
                 filtering.valueOrNullAs<String>('instituto.nome'));
             var nextPageToken = pageToken + pageSize;
-            
+
             return PaginationResult.items(
                 elements: temp,
                 nextPageToken:
