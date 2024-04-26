@@ -8,6 +8,7 @@ from dao.nome_citacao_dao import NomeCitacaoDao
 from model.pesquisador import Pesquisador
 from utils.xml_manager import XmlManager
 from flask import Blueprint
+from mysql.connector.errors import IntegrityError
 
 pesquisador_blueprint = Blueprint('pesquisador_blueprint', __name__)
 pesquisador_dao = PesquisadorDao()
@@ -32,16 +33,18 @@ def create(codigo, id_instituto):
         xml_dictionary = xml_manager.read_xml_in_base_directory(xml_file_name)
         pesquisador_id = codigo
         pesquisador_nome = xml_dictionary['CURRICULO-VITAE']['DADOS-GERAIS']['@NOME-COMPLETO']
-        #pesquisador_dao.create(pesquisador_id, pesquisador_nome, id_instituto)
 
-        trabalhos = []
+        try:
+            pesquisador_dao.create(pesquisador_id, pesquisador_nome, id_instituto)
+        except IntegrityError:
+            return f'Já existe um pesquisador com código {codigo}', status.HTTP_400_BAD_REQUEST
+        
         artigos = []
         try:
             artigos = xml_dictionary['CURRICULO-VITAE']['PRODUCAO-BIBLIOGRAFICA']['ARTIGOS-PUBLICADOS']['ARTIGO-PUBLICADO']
         except:
             print('Não há artigos publicados pelo pesquisador')
             artigos = []
-
         capitulos = []
         try:
             capitulos = xml_dictionary['CURRICULO-VITAE']['PRODUCAO-BIBLIOGRAFICA']['LIVROS-E-CAPITULOS']['CAPITULOS-DE-LIVROS-PUBLICADOS']['CAPITULO-DE-LIVRO-PUBLICADO']
@@ -55,44 +58,50 @@ def create(codigo, id_instituto):
         except:
             print('Não há livros publicados pelo pesquisador')
             livros = []
-
+        if(type(artigos) != type([])):
+            artigos = [artigos]
         for artigo in artigos:
             titulo = artigo['DADOS-BASICOS-DO-ARTIGO']['@TITULO-DO-ARTIGO']
             ano = artigo['DADOS-BASICOS-DO-ARTIGO']['@ANO-DO-ARTIGO']
             tipo = 'ARTIGO'
-            print('Inserindo artigo ' + titulo)
             trabalho_dao.create(titulo, ano, tipo, pesquisador_id)
-
             artigo_id = trabalho_dao.get_last_inserted_id()
-            for autor in artigo['AUTORES']:
+            autores = artigo['AUTORES']
+            if(type(autores) != type([])):
+                autores = [autores]
+            for autor in autores:
                 nome_citacao = autor['@NOME-PARA-CITACAO']
                 nome_citacao_dao.create(nome_citacao, artigo_id)
-
+        if(type(capitulos) != type([])):
+            capitulos = [capitulos]
         for capitulo in capitulos:
             titulo = capitulo['DADOS-BASICOS-DO-CAPITULO']['@TITULO-DO-CAPITULO-DO-LIVRO']
             ano = capitulo['DADOS-BASICOS-DO-CAPITULO']['@ANO']
             tipo = 'LIVRO'
-            print('Inserindo capitulo ' + titulo)
             trabalho_dao.create(titulo, ano, tipo, pesquisador_id)
-
             capitulo_id = trabalho_dao.get_last_inserted_id()
-            for autor in capitulo['AUTORES']:
+            autores = capitulo['AUTORES']
+            if(type(autores) != type([])):
+                autores = [autores]
+            for autor in autores:
                 nome_citacao = autor['@NOME-PARA-CITACAO']
                 nome_citacao_dao.create(nome_citacao, capitulo_id)
-
+        if(type(livros) != type([])):
+            livros = [livros]
         for livro in livros:
             titulo = livro['DADOS-BASICOS-DO-LIVRO']['@TITULO-DO-LIVRO']
             ano = livro['DADOS-BASICOS-DO-LIVRO']['@ANO']
             tipo = 'LIVRO'
-            print('Inserindo livro ' + titulo)
             trabalho_dao.create(titulo, ano, tipo, pesquisador_id)
-
             livro_id = trabalho_dao.get_last_inserted_id()
-            for autor in livro['AUTORES']:
+            autores = livro['AUTORES']
+            if(type(autores) != type([])):
+                autores = [autores]
+            for autor in autores:
                 nome_citacao = autor['@NOME-PARA-CITACAO']
-                nome_citacao_dao.create(nome_citacao, capitulo_id)
+                nome_citacao_dao.create(nome_citacao, livro_id)
         
-        return 'Pesquisador cadastrado com sucesso', status.HTTP_201_CREATED
+        return f'Pesquisador cadastrado com sucesso', status.HTTP_201_CREATED
     else:
         return f'Não há arquivo com o código {codigo}', status.HTTP_404_NOT_FOUND
 
