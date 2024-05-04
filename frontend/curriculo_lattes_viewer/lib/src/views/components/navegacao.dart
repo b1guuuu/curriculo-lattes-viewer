@@ -1,6 +1,7 @@
 import 'package:curriculo_lattes_viewer/src/views/pages/inicio.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/institutos.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/pesquisadores.dart';
+import 'package:curriculo_lattes_viewer/src/views/pages/producao.dart';
 import 'package:flutter/material.dart';
 
 class Navegacao extends StatelessWidget {
@@ -28,6 +29,12 @@ class Navegacao extends StatelessWidget {
           leading: const Icon(Icons.people_alt),
           onTap: () =>
               Navigator.pushReplacementNamed(context, PesquisadoresPage.rota),
+        ),
+        ListTile(
+          title: const Text('Produção'),
+          leading: const Icon(Icons.local_library_rounded),
+          onTap: () =>
+              Navigator.pushReplacementNamed(context, ProducaoPage.rota),
         ),
       ],
     );

@@ -1,6 +1,7 @@
 import 'package:curriculo_lattes_viewer/src/views/pages/inicio.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/institutos.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/pesquisadores.dart';
+import 'package:curriculo_lattes_viewer/src/views/pages/producao.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -35,7 +36,8 @@ class App extends StatelessWidget {
       home: const InicioPage(),
       routes: {
         InstitutosPage.rota: (context) => const InstitutosPage(),
-        PesquisadoresPage.rota: (context) => const PesquisadoresPage()
+        PesquisadoresPage.rota: (context) => const PesquisadoresPage(),
+        ProducaoPage.rota: (context) => const ProducaoPage()
       },
     );
   }
