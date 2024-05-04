@@ -1,4 +1,5 @@
 from model.trabalho import Trabalho
+from model.nome_citacao import NomeCitacao
 from config.configdb import conexao
 
 class TrabalhoDao:
@@ -59,3 +60,53 @@ class TrabalhoDao:
 
     def get_last_inserted_id(self):
         return self.cursor.lastrowid
+
+     # FILTER
+    def filter(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
+        
+        print('filter')
+        sql = 'SELECT trabalho.id, trabalho.titulo, trabalho.ano, trabalho.tipo, trabalho.idPesquisador, nomecitacao.id, nomecitacao.nome, nomecitacao.idTrabalho FROM trabalho '
+        sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho;'
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+
+        ultimo_id = -1
+        trabalhos_com_nomes = []
+        trabalho = None
+
+        for linha in resultado:
+            if linha[0] != ultimo_id:
+                if ultimo_id != -1:
+                    trabalhos_com_nomes.append(trabalho)
+                ultimo_id = linha[0]
+                trabalho = {
+                    'id': linha[0],
+                    'titulo': linha[1],
+                    'ano': linha[2],
+                    'tipo': linha[3],
+                    'idPesquisador': linha[4],
+                    'nomes': []
+                }
+            trabalho['nomes'].append({
+                'id': linha[5],
+                'nome': linha[6],
+                'idTrabalho': linha[7]
+            })
+
+        print(trabalhos_com_nomes)
+        return trabalhos_com_nomes
+
+    # COUNT
+    def count(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
+        sql = 'SELECT COUNT(pesquisador.id) FROM pesquisador '
+        sql += "INNER JOIN instituto ON pesquisador.idInstituto = instituto.id "
+        if nomePesquisador != 'null' and nomeInstituto != 'null':
+            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' AND instituto.nome LIKE '%" + nomeInstituto + "%' "
+        elif nomePesquisador != 'null':
+            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' "
+        elif nomeInstituto != 'null':
+            sql += "WHERE instituto.nome LIKE '%" + nomeInstituto + "%' "
+
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return resultado[0][0]

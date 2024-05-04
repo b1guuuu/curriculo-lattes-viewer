@@ -5,6 +5,8 @@ import xmltodict
 class XmlManager:
     def __init__(self):
         root_directory = os.path.dirname(os.path.abspath(sys.argv[0]))
+        if 'env' in root_directory:
+            root_directory = '/home/igor/HD/Documents/FeMASS/Disciplinas/ds1/curriculo-lattes-viewer/curriculo-lattes-backend'
         self.xml_base_directory = os.path.join(root_directory, 'assets', 'xml')
 
     def get_all_xml_names(self):

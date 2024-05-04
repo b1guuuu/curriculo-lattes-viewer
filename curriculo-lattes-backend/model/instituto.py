@@ -1,4 +1,4 @@
-class Instituto:
+class Instituto(object):
     def __init__(self, id, nome, acronimo):
         self.id = id
         self.nome = nome

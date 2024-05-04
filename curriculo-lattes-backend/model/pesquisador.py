@@ -1,4 +1,4 @@
-class Pesquisador:
+class Pesquisador(object):
     def __init__(self, id, nome, email, idInstituto):
         self.id = id
         self.nome = nome
