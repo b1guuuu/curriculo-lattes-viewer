@@ -62,11 +62,30 @@ class TrabalhoDao:
         return self.cursor.lastrowid
 
      # FILTER
-    def filter(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
-        
-        print('filter')
+    def filter(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None, orderBy=None, sort=None, posicaoInicial=1, quantidadeItens=100):
         sql = 'SELECT trabalho.id, trabalho.titulo, trabalho.ano, trabalho.tipo, trabalho.idPesquisador, nomecitacao.id, nomecitacao.nome, nomecitacao.idTrabalho FROM trabalho '
-        sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho;'
+        sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho '
+        
+        filtros = []
+        if ano_inicio != 'null':
+            filtros.append('trabalho.ano >= ' + str(ano_inicio))
+        if ano_fim != 'null':
+            filtros.append('trabalho.ano <= ' + str(ano_fim))
+        if id_instituto != 'null':
+            sql += 'INNER JOIN pesquisador ON trabalho.idPesquisador=pesquisador.id '
+            filtros.append("pesquisador.idInstituto = " + str(id_instituto))
+        if id_pesquisador != 'null':
+            filtros.append("trabalho.idPesquisador = '" + id_pesquisador + "'")
+        if tipo != 'null':
+            filtros.append("trabalho.tipo = '" + tipo + "'")
+
+        if len(filtros) > 0:
+            sql += 'WHERE ' + ' AND '.join(filtros) + ' '
+        if orderBy != 'null':
+            sql += "ORDER BY " + orderBy + " " + sort + " "
+
+        sql+='LIMIT ' + posicaoInicial + ', ' + quantidadeItens + ';'
+        print(sql)
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
 
@@ -92,8 +111,6 @@ class TrabalhoDao:
                 'nome': linha[6],
                 'idTrabalho': linha[7]
             })
-
-        print(trabalhos_com_nomes)
         return trabalhos_com_nomes
 
     # COUNT
