@@ -85,13 +85,14 @@ class ProducaoPageState extends State<ProducaoPage> {
                     print(filtering);
                     var temp = await _trabalhoController.filtrar(
                         filtering.valueOrNullAs<String>('ano.inicio') == null
-                        ? null
-                        :int.parse(filtering.valueOrNull('ano.inicio')), 
+                          ? null
+                          :int.parse(filtering.valueOrNull('ano.inicio')), 
                         filtering.valueOrNullAs<String>('ano.fim') == null
-                        ? null
-                        :int.parse(filtering.valueOrNull('ano.fim')),                    
-                        filtering.valueOrNullAs<String>('nomePesquisador'),
-                        filtering.valueOrNullAs<String>('nomeInstituto'),
+                          ? null
+                          :int.parse(filtering.valueOrNull('ano.fim')),                    
+                        filtering.valueOrNullAs<int>('idInstituto'),
+                        filtering.valueOrNullAs<int>('idInstituto'),
+                        filtering.valueOrNullAs<String>('tipo'),
                         sortBy?.columnId,
                         (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
                         pageToken,
@@ -99,8 +100,9 @@ class ProducaoPageState extends State<ProducaoPage> {
                     var totalTrabalhos = await _trabalhoController.contar(
                         filtering.valueOrNullAs<int>('ano.inicio'),
                         filtering.valueOrNullAs<int>('ano.fim'),
-                        filtering.valueOrNullAs<String>('instituto'),
-                        filtering.valueOrNullAs<String>('pesquisador'));
+                        filtering.valueOrNullAs<int>('idInstituto'),
+                        filtering.valueOrNullAs<int>('idInstituto'),
+                        filtering.valueOrNullAs<String>('tipo'));
                     var nextPageToken = pageToken + pageSize;
 
                     return PaginationResult.items(
@@ -140,7 +142,7 @@ class ProducaoPageState extends State<ProducaoPage> {
                       title: "Ano fim",
                     ),
                     DropdownTableFilter(
-                      id: '',
+                      id: 'instituto',
                       title: 'Instituto',
                       items: _institutos
                           .map((instituto) => DropdownMenuItem(
