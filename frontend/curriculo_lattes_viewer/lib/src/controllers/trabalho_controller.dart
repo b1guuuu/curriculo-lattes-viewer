@@ -21,7 +21,7 @@ class TrabalhoController {
       int? anoInicio,
       int? anoFim,
       int? idInstituto,
-      int? idPesquisador,
+      String? idPesquisador,
       String? tipo,
       String? orderBy,
       String? sort,
@@ -46,7 +46,7 @@ class TrabalhoController {
     int? anoInicio,
     int? anoFim,
     int? idInstituto,
-    int? idPesquisador,
+    String? idPesquisador,
     String? tipo,
   ) async {
     try {

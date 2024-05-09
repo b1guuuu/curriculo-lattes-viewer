@@ -32,14 +32,13 @@ class ProducaoPageState extends State<ProducaoPage> {
   @override
   void initState() {
     super.initState();
-    _buscarInstitutos();
+    _buscarInstitutos().then((value) => _buscarPesquisadores());
   }
 
   Future<void> _buscarInstitutos() async {
     var temp = await _institutosController.listar();
     setState(() {
       _institutos = temp;
-      _carregando = false;
     });
   }
 
@@ -47,6 +46,7 @@ class ProducaoPageState extends State<ProducaoPage> {
     var temp = await _pesquisadoresController.listar();
     setState(() {
       _pesquisadores = temp;
+      _carregando = false;
     });
   }
 
@@ -79,16 +79,32 @@ class ProducaoPageState extends State<ProducaoPage> {
                         filtering.valueOrNullAs<String>('ano.inicio') == null
                             ? null
                             : int.parse(filtering.valueOrNull('ano.inicio')),
-                        filtering.valueOrNullAs<int>('ano.fim'),
-                        null,
-                        null,
+                        filtering.valueOrNullAs<String>('ano.fim') == null
+                            ? null
+                            : int.parse(filtering.valueOrNull('ano.fim')),
+                        filtering.valueOrNullAs<Instituto>('instituto')?.id,
+                        filtering.valueOrNullAs<Pesquisador>('pesquisador')?.id,
                         filtering.valueOrNullAs<String>('tipo'),
                         sortBy?.columnId,
                         (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
                         pageToken,
                         pageSize);
+                    var totalTrabalhos = await _trabalhoController.contar(
+                        filtering.valueOrNullAs<String>('ano.inicio') == null
+                            ? null
+                            : int.parse(filtering.valueOrNull('ano.inicio')),
+                        filtering.valueOrNullAs<String>('ano.fim') == null
+                            ? null
+                            : int.parse(filtering.valueOrNull('ano.fim')),
+                        filtering.valueOrNullAs<Instituto>('instituto')?.id,
+                        filtering.valueOrNullAs<Pesquisador>('pesquisador')?.id,
+                        filtering.valueOrNullAs<String>('tipo'));
+                    var nextPageToken = pageToken + pageSize;
                     return PaginationResult.items(
-                        elements: temp, nextPageToken: null);
+                        elements: temp,
+                        nextPageToken: nextPageToken > totalTrabalhos
+                            ? null
+                            : nextPageToken);
                   },
                   initialPage: 0,
                   columns: [
