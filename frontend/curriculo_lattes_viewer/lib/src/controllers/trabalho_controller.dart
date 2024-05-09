@@ -17,9 +17,19 @@ class TrabalhoController {
     return trabalhos;
   }
 
-  Future<List<Trabalho>> filtrar() async {
+  Future<List<Trabalho>> filtrar(
+      int? anoInicio,
+      int? anoFim,
+      int? idInstituto,
+      int? idPesquisador,
+      String? tipo,
+      String? orderBy,
+      String? sort,
+      int posicaoInicial,
+      int quantidadeItens) async {
     try {
-      Response resposta = await http.get(Uri.parse('$_baseURL/filtrar'));
+      Response resposta = await http.get(Uri.parse(
+          '$_baseURL/filtrar?anoInicio=$anoInicio&anoFim=$anoFim&idInstituto=$idInstituto&idPesquisador=$idPesquisador&tipo=$tipo&orderBy=$orderBy&sort=$sort&posicaoInicial=$posicaoInicial&quantidadeItens=$quantidadeItens'));
       var respostaJson = jsonDecode(resposta.body);
       List<Trabalho> trabalhos = [];
       for (var trabalhoJson in respostaJson) {
