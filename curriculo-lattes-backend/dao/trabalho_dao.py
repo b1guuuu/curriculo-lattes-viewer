@@ -63,8 +63,6 @@ class TrabalhoDao:
 
      # FILTER
     def filter(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None, orderBy=None, sort=None, posicaoInicial=1, quantidadeItens=100):
-        
-        print('filter')
         sql = 'SELECT trabalho.id, trabalho.titulo, trabalho.ano, trabalho.tipo, trabalho.idPesquisador, nomecitacao.id, nomecitacao.nome, nomecitacao.idTrabalho FROM trabalho '
         sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho '
         
@@ -81,7 +79,8 @@ class TrabalhoDao:
         if tipo != 'null':
             filtros.append("trabalho.tipo = '" + tipo + "'")
 
-        sql += 'WHERE ' + ' AND '.join(filtros) + ' '
+        if len(filtros) > 0:
+            sql += 'WHERE ' + ' AND '.join(filtros) + ' '
         if orderBy != 'null':
             sql += "ORDER BY " + orderBy + " " + sort + " "
 
@@ -112,8 +111,6 @@ class TrabalhoDao:
                 'nome': linha[6],
                 'idTrabalho': linha[7]
             })
-
-        print(trabalhos_com_nomes)
         return trabalhos_com_nomes
 
     # COUNT

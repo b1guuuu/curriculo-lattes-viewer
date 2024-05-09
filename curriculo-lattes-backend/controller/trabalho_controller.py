@@ -18,7 +18,6 @@ def get_all():
 @cross_origin()
 def get_all_citacoes():
     try:
-        print('filtrar')
         ano_inicio = request.args.get('anoInicio')
         ano_fim = request.args.get('anoFim')
         id_instituto = request.args.get('idInstituto')
