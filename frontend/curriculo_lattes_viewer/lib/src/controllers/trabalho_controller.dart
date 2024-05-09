@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:html';
 
+import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
+import 'package:curriculo_lattes_viewer/src/models/pesquisador.dart';
 import 'package:curriculo_lattes_viewer/src/models/trabalho.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -17,9 +20,20 @@ class TrabalhoController {
     return trabalhos;
   }
 
-  Future<List<Trabalho>> filtrar() async {
+  Future<List<Trabalho>> filtrar(
+    int? anoInicio,
+    int? anoFim,
+    String? nomeInstituto,
+    String? nomePesquisador,
+    String? orderBy,
+    String? sort,
+    int posicaoInicial,
+    int quantidadeItens
+  ) async {
     try {
-      Response resposta = await http.get(Uri.parse('$_baseURL/filtrar'));
+      var uri = Uri.parse(
+          '$_baseURL/filtrar?anoInicio=$anoInicio&anoFim=$anoFim&nomeInstituto=$nomeInstituto&nomePesquisador=$nomePesquisador&orderBy=$orderBy&sort=$sort&posicaoInicial=$posicaoInicial&quantidadeItens=$quantidadeItens');
+      Response resposta = await http.get(uri);
       var respostaJson = jsonDecode(resposta.body);
       List<Trabalho> trabalhos = [];
       for (var trabalhoJson in respostaJson) {
@@ -29,6 +43,19 @@ class TrabalhoController {
     } catch (e) {
       print(e.toString());
       return [];
+    }
+  }
+
+  Future<int> contar(int? anoInicio, int? anoFim, String? nomeInstituto, String? nomePesquisador) async {
+    try {
+      var uri = Uri.parse(
+          '$_baseURL/contar?anoInicio=$anoInicio&anoFim=$anoFim&nomeInstituto=$nomeInstituto&nomePesquisador=$nomePesquisador');
+      Response respostaRequisicao = await http.get(uri);
+      var respostaJson = jsonDecode(respostaRequisicao.body);
+      return respostaJson['totalTrabalhos'];
+    } catch (e) {
+      print(e.toString());
+      return 0;
     }
   }
 }

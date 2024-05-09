@@ -97,7 +97,7 @@ class TrabalhoDao:
         return trabalhos_com_nomes
 
     # COUNT
-    def count(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
+    def count(self, nomePesquisador=None,  nomeInstituto=None, id_pesquisador=None, tipo=None):
         sql = 'SELECT COUNT(pesquisador.id) FROM pesquisador '
         sql += "INNER JOIN instituto ON pesquisador.idInstituto = instituto.id "
         if nomePesquisador != 'null' and nomeInstituto != 'null':

@@ -1,7 +1,7 @@
 import json
-import jsonpickle
 from flask import Blueprint
 from flask_cors import cross_origin
+
 
 from dao.trabalho_dao import TrabalhoDao
 
