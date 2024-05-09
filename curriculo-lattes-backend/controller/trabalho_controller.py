@@ -33,3 +33,19 @@ def get_all_citacoes():
         print('exception')
         print(e)
         return json.dumps([])
+
+@trabalho_blueprint.route('/contar/', methods=['GET'])
+@cross_origin()
+def count():
+    try:
+        ano_inicio = request.args.get('anoInicio')
+        ano_fim = request.args.get('anoFim')
+        id_instituto = request.args.get('idInstituto')
+        id_pesquisador = request.args.get('idPesquisador')
+        tipo = request.args.get('tipo')
+        total_trabalhos = trabalho_dao.count(ano_inicio, ano_fim, id_instituto, id_pesquisador, tipo)
+        return {'totalTrabalhos': total_trabalhos}
+    except Exception as e:
+        print('exception')
+        print(e)
+        return {'totalTrabalhos': 0}

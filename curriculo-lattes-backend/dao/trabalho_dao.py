@@ -115,14 +115,25 @@ class TrabalhoDao:
 
     # COUNT
     def count(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
-        sql = 'SELECT COUNT(pesquisador.id) FROM pesquisador '
-        sql += "INNER JOIN instituto ON pesquisador.idInstituto = instituto.id "
-        if nomePesquisador != 'null' and nomeInstituto != 'null':
-            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' AND instituto.nome LIKE '%" + nomeInstituto + "%' "
-        elif nomePesquisador != 'null':
-            sql += "WHERE pesquisador.nome LIKE '%" + nomePesquisador + "%' "
-        elif nomeInstituto != 'null':
-            sql += "WHERE instituto.nome LIKE '%" + nomeInstituto + "%' "
+        sql = 'SELECT COUNT(trabalho.id) FROM trabalho '
+        sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho '   
+
+        filtros = []
+        if ano_inicio != 'null':
+            filtros.append('trabalho.ano >= ' + str(ano_inicio))
+        if ano_fim != 'null':
+            filtros.append('trabalho.ano <= ' + str(ano_fim))
+        if id_instituto != 'null':
+            sql += 'INNER JOIN pesquisador ON trabalho.idPesquisador=pesquisador.id '
+            filtros.append("pesquisador.idInstituto = " + str(id_instituto))
+        if id_pesquisador != 'null':
+            filtros.append("trabalho.idPesquisador = '" + id_pesquisador + "'")
+        if tipo != 'null':
+            filtros.append("trabalho.tipo = '" + tipo + "'")
+
+        if len(filtros) > 0:
+            sql += 'WHERE ' + ' AND '.join(filtros) + ' '
+        print(sql)
 
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
