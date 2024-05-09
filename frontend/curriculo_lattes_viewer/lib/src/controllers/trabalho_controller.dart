@@ -41,4 +41,23 @@ class TrabalhoController {
       return [];
     }
   }
+
+  Future<int> contar(
+    int? anoInicio,
+    int? anoFim,
+    int? idInstituto,
+    int? idPesquisador,
+    String? tipo,
+  ) async {
+    try {
+      var uri = Uri.parse(
+          '$_baseURL/contar?anoInicio=$anoInicio&anoFim=$anoFim&idInstituto=$idInstituto&idPesquisador=$idPesquisador&tipo=$tipo');
+      Response respostaRequisicao = await http.get(uri);
+      var respostaJson = jsonDecode(respostaRequisicao.body);
+      return respostaJson['totalTrabalhos'];
+    } catch (e) {
+      print(e.toString());
+      return 0;
+    }
+  }
 }
