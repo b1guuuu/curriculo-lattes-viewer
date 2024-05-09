@@ -34,7 +34,7 @@ def get_all_citacoes():
         print(e)
         return json.dumps([])
 
-@trabalho_blueprint.route('/contar/', methods=['GET'])
+@trabalho_blueprint.route('/contar', methods=['GET'])
 @cross_origin()
 def count():
     try:
