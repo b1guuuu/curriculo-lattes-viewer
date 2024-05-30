@@ -4,7 +4,6 @@ import 'package:curriculo_lattes_viewer/src/views/components/dropbox_producao.da
 import 'package:curriculo_lattes_viewer/src/views/components/dropbox_vertices.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
 import 'package:flutter/material.dart';
-import 'package:multiselect/multiselect.dart';
 
 class GeradorPage extends StatefulWidget {
   static const rota = 'gerador';
@@ -29,8 +28,6 @@ class GeradorPageState extends State<GeradorPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> _vertices = ['Pesquisador', 'Instituto'];
-    List<String> _selectedVertices = [];
 
     return Scaffold(
       appBar: AppBar(
