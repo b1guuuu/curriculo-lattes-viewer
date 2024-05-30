@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:curriculo_lattes_viewer/src/models/pesquisador.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -76,4 +75,5 @@ class PesquisadoresController {
       return 0;
     }
   }
+
 }

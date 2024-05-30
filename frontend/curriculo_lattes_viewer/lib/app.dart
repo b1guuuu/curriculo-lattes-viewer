@@ -1,3 +1,4 @@
+import 'package:curriculo_lattes_viewer/src/views/pages/gerador.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/inicio.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/institutos.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/pesquisadores.dart';
@@ -37,7 +38,8 @@ class App extends StatelessWidget {
       routes: {
         InstitutosPage.rota: (context) => const InstitutosPage(),
         PesquisadoresPage.rota: (context) => const PesquisadoresPage(),
-        ProducaoPage.rota: (context) => const ProducaoPage()
+        ProducaoPage.rota: (context) => const ProducaoPage(),
+        GeradorPage.rota: (context) => const GeradorPage()
       },
     );
   }

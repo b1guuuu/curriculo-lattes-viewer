@@ -1,3 +1,4 @@
+import 'package:curriculo_lattes_viewer/src/views/pages/gerador.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/inicio.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/institutos.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/pesquisadores.dart';
@@ -35,6 +36,12 @@ class Navegacao extends StatelessWidget {
           leading: const Icon(Icons.local_library_rounded),
           onTap: () =>
               Navigator.pushReplacementNamed(context, ProducaoPage.rota),
+        ),
+        ListTile(
+          title: const Text('Gerador de grafo'),
+          leading: const Icon(Icons.grain),
+          onTap: () =>
+              Navigator.pushReplacementNamed(context, GeradorPage.rota),
         ),
       ],
     );
