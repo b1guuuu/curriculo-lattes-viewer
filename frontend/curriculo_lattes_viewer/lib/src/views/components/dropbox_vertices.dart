@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:multiselect/multiselect.dart';
 
 class DropboxVertices extends StatefulWidget {
-  const DropboxVertices({Key? key}) : super(key: key);
+  const DropboxVertices({super.key});
 
   @override
-  _DropboxVerticesState createState() => _DropboxVerticesState();
+  DropboxVerticesState createState() => DropboxVerticesState();
 }
 
-class _DropboxVerticesState extends State<DropboxVertices> {
-  List<String> _vertices = ['Pesquisador', 'Instituto'];
+class DropboxVerticesState extends State<DropboxVertices> {
+  final List<String> _vertices = ['Pesquisador', 'Instituto'];
   List<String> selectedCheckBoxValue = [];
 
   @override
@@ -56,10 +56,14 @@ class _DropboxVerticesState extends State<DropboxVertices> {
                   onChanged: (List<String> values) {
                     setState(() {
                       if (values.contains('  Selecionar Todos')) {
-                        if (selectedCheckBoxValue.length == _vertices.length + 1) {
+                        if (selectedCheckBoxValue.length ==
+                            _vertices.length + 1) {
                           selectedCheckBoxValue = [];
                         } else {
-                          selectedCheckBoxValue = ['  Selecionar Todos', ..._vertices];
+                          selectedCheckBoxValue = [
+                            '  Selecionar Todos',
+                            ..._vertices
+                          ];
                         }
                       } else {
                         selectedCheckBoxValue = values;
@@ -70,7 +74,8 @@ class _DropboxVerticesState extends State<DropboxVertices> {
                   // Customização do display quando o dropdown está fechado
                   childBuilder: (List<String> selectedValues) {
                     return Text(
-                      selectedValues.isEmpty || selectedValues.contains('  Selecionar Todos')
+                      selectedValues.isEmpty ||
+                              selectedValues.contains('  Selecionar Todos')
                           ? '  Selecione Vertices'
                           : '  ${selectedValues.join(', ')}',
                       style: const TextStyle(color: Colors.black54),

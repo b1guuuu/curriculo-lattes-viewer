@@ -24,7 +24,7 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
       PesquisadoresController();
   final InstitutosController _institutosController = InstitutosController();
 
-  final _tableController = PagedDataTableController<int, String, Pesquisador>();
+  final _tableController = PagedDataTableController<String, Pesquisador>();
 
   late List<Instituto> _institutos = [];
 
@@ -50,18 +50,30 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
   }
 
   Future<void> _excluirPesquisadorSelecionado() async {
-    var pesquisador = _tableController.getSelectedRows().first;
+    var pesquisador = _tableController.selectedItems.first;
     await _pesquisadoresController.deletar(pesquisador.id);
     setState(() {
       _tableController.unselectAllRows();
+      _tableController.refresh();
     });
-    await _tableController.refresh();
   }
 
   @override
   void dispose() {
     _tableController.dispose();
     super.dispose();
+  }
+
+  void _alternaSelecao(bool? selecionado) {
+    if (selecionado == true) {
+      setState(() {
+        _tableController.selectAllRows();
+      });
+    } else {
+      setState(() {
+        _tableController.unselectAllRows();
+      });
+    }
   }
 
   @override
@@ -76,103 +88,129 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
       body: Container(
         color: const Color.fromARGB(255, 208, 208, 208),
         padding: const EdgeInsets.all(20.0),
-        child: PagedDataTable<int, String, Pesquisador>(
-          rowsSelectable: true,
-          idGetter: (pesquisador) => pesquisador.id,
+        child: PagedDataTable<String, Pesquisador>(
           controller: _tableController,
-          fetchPage: (pageToken, pageSize, sortBy, filtering) async {
+          fetcher: (int pageSize, SortModel? sortModel, FilterModel filterModel,
+              String? pageToken) async {
             var temp = await _pesquisadoresController.filtrar(
-                filtering.valueOrNullAs<String>('pesquisador.nome'),
-                filtering.valueOrNullAs<String>('instituto.nome'),
-                sortBy?.columnId,
-                (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
-                pageToken,
+                filterModel['pesquisador.nome'],
+                filterModel['instituto.nome'],
+                sortModel?.fieldName,
+                (sortModel?.descending ?? false) ? 'ASC' : 'DESC',
+                int.parse(pageToken ?? '0'),
                 pageSize);
             var totalPesquisadores = await _pesquisadoresController.contar(
-                filtering.valueOrNullAs<String>('pesquisador.nome'),
-                filtering.valueOrNullAs<String>('instituto.nome'));
-            var nextPageToken = pageToken + pageSize;
+              filterModel['pesquisador.nome'],
+              filterModel['instituto.nome'],
+            );
+            var nextPageToken = int.parse(pageToken ?? '0') + pageSize;
 
-            return PaginationResult.items(
-                elements: temp,
-                nextPageToken:
-                    nextPageToken > totalPesquisadores ? null : nextPageToken);
+            return (
+              temp,
+              nextPageToken > totalPesquisadores
+                  ? null
+                  : nextPageToken.toString()
+            );
           },
-          initialPage: 0,
+          initialPage: '0',
           columns: [
             TableColumn(
-                id: "pesquisador.nome",
-                title: "Nome",
-                cellBuilder: (pesquisador) => Text(pesquisador.nome),
-                sortable: true,
-                sizeFactor: 0.4),
-            TableColumn(
-                id: "email",
-                title: "Email",
-                cellBuilder: (pesquisador) => Text(pesquisador.email),
+                id: "select",
+                title: Checkbox.adaptive(
+                    value: _tableController.selectedRows.length ==
+                        _tableController.totalItems,
+                    onChanged: _alternaSelecao),
+                cellBuilder: (context, pesquisador, index) => Checkbox.adaptive(
+                    value: _tableController.selectedItems.contains(pesquisador),
+                    onChanged: (bool? selecionado) {
+                      if (selecionado == true) {
+                        _tableController.selectRow(index);
+                      } else {
+                        _tableController.unselectRow(index);
+                      }
+                    }),
                 sortable: false,
-                sizeFactor: 0.1),
+                size: const FractionalColumnSize(0.05)),
+            TableColumn(
+                id: "pesquisador.nome",
+                title: const Text('Nome'),
+                cellBuilder: (context, pesquisador, index) =>
+                    Text(pesquisador.nome),
+                sortable: true,
+                size: const FractionalColumnSize(0.15)),
+            TableColumn(
+              id: "email",
+              title: const Text('Email'),
+              cellBuilder: (context, pesquisador, index) =>
+                  Text(pesquisador.email),
+              sortable: false,
+            ),
             TableColumn(
                 id: "instituto.nome",
-                title: "Instituto",
-                cellBuilder: (pesquisador) => Text((_institutos.firstWhere(
-                        (instituto) => instituto.id == pesquisador.idInstituto))
-                    .nome),
+                title: const Text('Instituto'),
+                cellBuilder: (context, pesquisador, index) => Text(
+                    (_institutos.firstWhere((instituto) =>
+                        instituto.id == pesquisador.idInstituto)).nome),
                 sortable: true,
-                sizeFactor: 0.4),
+                size: const RemainingColumnSize()),
           ],
           filters: [
             TextTableFilter(
-                chipFormatter: (texto) => texto,
-                id: "pesquisador.nome",
-                title: "Filtrar por nome do pesquisador"),
-            TextTableFilter(
-                chipFormatter: (texto) => texto,
-                id: "instituto.nome",
-                title: "Filtrar por nome do instituto"),
-          ],
-          menu: PagedDataTableFilterBarMenu(items: [
-            FilterMenuItem(
-              title: const Text("Adicionar pesquisador"),
-              onTap: () async {
-                await _modalBuilder(context);
-                await _tableController.refresh();
-              },
+              id: "pesquisador.nome",
+              name: "Filtrar por nome do pesquisador",
+              chipFormatter: (texto) => texto,
             ),
-            const FilterMenuDivider(),
-            FilterMenuItem(
-                title: const Text("Excluir selecionado"),
-                onTap: () {
-                  if (_tableController.getSelectedRows().isEmpty) {
-                    QuickAlert.show(
-                        context: context,
-                        type: QuickAlertType.warning,
-                        text: "Selecione um pesquisador");
-                  } else {
-                    if (_tableController.getSelectedRows().length > 1) {
-                      QuickAlert.show(
-                          context: context,
-                          type: QuickAlertType.warning,
-                          text: "Selecione apenas 1 pesquisador");
-                    } else {
-                      QuickAlert.show(
-                          context: context,
-                          type: QuickAlertType.confirm,
-                          text:
-                              'Deseja mesmo excluir o ID: ${_tableController.getSelectedRows().first.id} de ${_tableController.getSelectedRows().first.nome}?',
-                          confirmBtnText: 'Confirmar',
-                          cancelBtnText: 'Cancelar',
-                          confirmBtnColor: Colors.red,
-                          title: 'Você tem certeza?',
-                          onConfirmBtnTap: () async {
-                            await _excluirPesquisadorSelecionado();
-                            Navigator.of(context).pop();
-                          });
-                    }
-                  }
-                }),
-            const FilterMenuDivider(),
-          ]),
+            TextTableFilter(
+              id: "instituto.nome",
+              name: "Filtrar por nome do instituto",
+              chipFormatter: (texto) => texto,
+            ),
+          ],
+          filterBarChild: PopupMenuButton(
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  child: const Text("Adicionar pesquisador"),
+                  onTap: () async {
+                    await _modalBuilder(context);
+                    _tableController.refresh();
+                  },
+                ),
+                PopupMenuItem(
+                    child: const Text("Excluir selecionado"),
+                    onTap: () {
+                      if (_tableController.selectedItems.isEmpty) {
+                        QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            text: "Selecione um pesquisador");
+                      } else {
+                        if (_tableController.selectedItems.length > 1) {
+                          QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.warning,
+                              text: "Selecione apenas 1 pesquisador");
+                        } else {
+                          QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.confirm,
+                              text:
+                                  'Deseja mesmo excluir o ID: ${_tableController.selectedItems.first.id} de ${_tableController.selectedItems.first.nome}?',
+                              confirmBtnText: 'Confirmar',
+                              cancelBtnText: 'Cancelar',
+                              confirmBtnColor: Colors.red,
+                              title: 'Você tem certeza?',
+                              onConfirmBtnTap: () async {
+                                await _excluirPesquisadorSelecionado();
+                                _tableController.refresh();
+                                Navigator.of(context).pop();
+                              });
+                        }
+                      }
+                    }),
+              ];
+            },
+          ),
         ),
       ),
     );

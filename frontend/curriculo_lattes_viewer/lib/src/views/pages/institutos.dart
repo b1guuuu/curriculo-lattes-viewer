@@ -23,7 +23,7 @@ class InstitutosPageState extends State<InstitutosPage> {
   final TextEditingController _nomeTFController = TextEditingController();
   final TextEditingController _acronimoTFController = TextEditingController();
 
-  final _tableController = PagedDataTableController<int, int, Instituto>();
+  final _tableController = PagedDataTableController<String, Instituto>();
 
   @override
   void initState() {
@@ -39,7 +39,7 @@ class InstitutosPageState extends State<InstitutosPage> {
   }
 
   void _defineTextControllersEditarInstituto() {
-    var institutoSelecionado = _tableController.getSelectedRows().first;
+    var institutoSelecionado = _tableController.selectedItems.first;
     setState(() {
       _codigoTFController.value =
           TextEditingValue(text: institutoSelecionado.id.toString());
@@ -62,15 +62,30 @@ class InstitutosPageState extends State<InstitutosPage> {
   }
 
   Future<void> _excluirInstitutoSelecionado() async {
-    var instituto = _tableController.getSelectedRows().first;
+    var instituto = _tableController.selectedItems.first;
     await _controller.deletar(instituto.id);
-    _tableController.removeRow(instituto.id);
+    setState(() {
+      _tableController.unselectAllRows();
+      _tableController.refresh();
+    });
   }
 
   @override
   void dispose() {
     _tableController.dispose();
     super.dispose();
+  }
+
+  void _alternaSelecao(bool? selecionado) {
+    if (selecionado == true) {
+      setState(() {
+        _tableController.selectAllRows();
+      });
+    } else {
+      setState(() {
+        _tableController.unselectAllRows();
+      });
+    }
   }
 
   @override
@@ -85,118 +100,146 @@ class InstitutosPageState extends State<InstitutosPage> {
       body: Container(
         color: const Color.fromARGB(255, 208, 208, 208),
         padding: const EdgeInsets.all(20.0),
-        child: PagedDataTable<int, int, Instituto>(
-          rowsSelectable: true,
-          idGetter: (instituto) => instituto.id,
+        child: PagedDataTable<String, Instituto>(
           controller: _tableController,
-          fetchPage: (pageToken, pageSize, sortBy, filtering) async {
+          fetcher: (int pageSize, SortModel? sortModel, FilterModel filterModel,
+              String? pageToken) async {
             var temp = await _controller.filtrar(
-                filtering.valueOrNullAs<String>('nome'),
-                filtering.valueOrNullAs<String>('acronimo'),
-                sortBy?.columnId,
-                (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
-                pageToken,
+                filterModel['nome'],
+                filterModel['acronimo'],
+                sortModel?.fieldName,
+                (sortModel?.descending ?? false) ? 'ASC' : 'DESC',
+                int.parse(pageToken ?? '0'),
                 pageSize);
             var totalInstitutos = await _controller.contar(
-                filtering.valueOrNullAs<String>('nome'),
-                filtering.valueOrNullAs<String>('acronimo'));
-            var nextPageToken = pageToken + pageSize;
-            return PaginationResult.items(
-                elements: temp,
-                nextPageToken:
-                    nextPageToken > totalInstitutos ? null : nextPageToken);
+                filterModel['nome'], filterModel['acronimo']);
+            var nextPageToken = int.parse(pageToken ?? '0') + pageSize;
+            return (
+              temp,
+              nextPageToken > totalInstitutos ? null : nextPageToken.toString()
+            );
           },
-          initialPage: 0,
+          initialPage: '0',
           columns: [
             TableColumn(
-                id: "nome",
-                title: "Nome",
-                cellBuilder: (instituto) => Text(instituto.nome),
-                sortable: true,
-                sizeFactor: 0.7),
+                id: "select",
+                title: Checkbox.adaptive(
+                    value: _tableController.selectedRows.length ==
+                        _tableController.totalItems,
+                    onChanged: _alternaSelecao),
+                cellBuilder: (context, pesquisador, index) => Checkbox.adaptive(
+                    value: _tableController.selectedItems.contains(pesquisador),
+                    onChanged: (bool? selecionado) {
+                      if (selecionado == true) {
+                        setState(() {
+                          _tableController.selectRow(index);
+                        });
+                      } else {
+                        setState(() {
+                          _tableController.unselectRow(index);
+                        });
+                      }
+                    }),
+                sortable: false,
+                size: const FractionalColumnSize(0.05)),
             TableColumn(
-                id: "acronimo",
-                title: "Acronimo",
-                cellBuilder: (instituto) => Text(instituto.acronimo),
+              id: "acronimo",
+              title: const Text('Acrônimo'),
+              cellBuilder: (context, instituto, index) =>
+                  Text(instituto.acronimo),
+              sortable: true,
+            ),
+            TableColumn(
+                id: "nome",
+                title: const Text('Nome'),
+                cellBuilder: (context, instituto, index) =>
+                    Text(instituto.nome),
                 sortable: true,
-                sizeFactor: 0.2),
+                size: const RemainingColumnSize()),
           ],
           filters: [
             TextTableFilter(
-                chipFormatter: (texto) => texto,
-                id: "nome",
-                title: "Filtrar por nome"),
+              id: "nome",
+              name: "Filtrar por nome",
+              chipFormatter: (texto) => texto,
+            ),
             TextTableFilter(
-                chipFormatter: (texto) => texto,
-                id: "acronimo",
-                title: "Filtrar por acronimo"),
+              id: "acronimo",
+              name: "Filtrar por acronimo",
+              chipFormatter: (texto) => texto,
+            ),
           ],
-          menu: PagedDataTableFilterBarMenu(items: [
-            FilterMenuItem(
-              title: const Text("Adicionar instituto"),
-              onTap: () async {
-                _defineTextControllersNovoInstituto();
-                await _modalBuilder(context);
-                await _tableController.refresh();
-              },
-            ),
-            const FilterMenuDivider(),
-            FilterMenuItem(
-              title: const Text("Editar selecionado"),
-              onTap: () async {
-                if (_tableController.getSelectedRows().isEmpty) {
-                  QuickAlert.show(
-                      context: context,
-                      type: QuickAlertType.error,
-                      text: "Nenhum instituto foi selecionado");
-                } else {
-                  if (_tableController.getSelectedRows().length > 1) {
-                    QuickAlert.show(
-                        context: context,
-                        type: QuickAlertType.warning,
-                        text: "Selecione apenas 1 instituto");
-                  } else {
-                    _defineTextControllersEditarInstituto();
+          filterBarChild: PopupMenuButton(
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem(
+                  child: const Text("Adicionar instituto"),
+                  onTap: () async {
+                    _defineTextControllersNovoInstituto();
                     await _modalBuilder(context);
-                    await _tableController.refresh();
-                  }
-                }
-              },
-            ),
-            const FilterMenuDivider(),
-            FilterMenuItem(
-                title: const Text("Excluir selecionado"),
-                onTap: () {
-                  if (_tableController.getSelectedRows().isEmpty) {
-                    QuickAlert.show(
-                        context: context,
-                        type: QuickAlertType.warning,
-                        text: "Selecione um instituto");
-                  } else {
-                    if (_tableController.getSelectedRows().length > 1) {
+                    setState(() {
+                      _tableController.refresh();
+                    });
+                  },
+                ),
+                PopupMenuItem(
+                  child: const Text("Editar selecionado"),
+                  onTap: () async {
+                    if (_tableController.selectedItems.isEmpty) {
                       QuickAlert.show(
                           context: context,
-                          type: QuickAlertType.warning,
-                          text: "Selecione apenas 1 instituto");
+                          type: QuickAlertType.error,
+                          text: "Nenhum instituto foi selecionado");
                     } else {
-                      QuickAlert.show(
-                          context: context,
-                          type: QuickAlertType.confirm,
-                          text:
-                              'Deseja excluir ${_tableController.getSelectedRows().first.nome}?',
-                          confirmBtnText: 'Confirmar',
-                          cancelBtnText: 'Cancelar',
-                          confirmBtnColor: Colors.red,
-                          title: 'Você tem certeza?',
-                          onConfirmBtnTap: () async {
-                            await _excluirInstitutoSelecionado();
-                            Navigator.of(context).pop();
-                          });
+                      if (_tableController.selectedItems.length > 1) {
+                        QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            text: "Selecione apenas 1 instituto");
+                      } else {
+                        _defineTextControllersEditarInstituto();
+                        await _modalBuilder(context);
+                        setState(() {
+                          _tableController.refresh();
+                        });
+                      }
                     }
-                  }
-                }),
-            const FilterMenuDivider(),
-          ]),
+                  },
+                ),
+                PopupMenuItem(
+                    child: const Text("Excluir selecionado"),
+                    onTap: () {
+                      if (_tableController.selectedItems.isEmpty) {
+                        QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            text: "Selecione um instituto");
+                      } else {
+                        if (_tableController.selectedItems.length > 1) {
+                          QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.warning,
+                              text: "Selecione apenas 1 instituto");
+                        } else {
+                          QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.confirm,
+                              text:
+                                  'Deseja excluir ${_tableController.selectedItems.first.nome}?',
+                              confirmBtnText: 'Confirmar',
+                              cancelBtnText: 'Cancelar',
+                              confirmBtnColor: Colors.red,
+                              title: 'Você tem certeza?',
+                              onConfirmBtnTap: () async {
+                                await _excluirInstitutoSelecionado();
+                                Navigator.of(context).pop();
+                              });
+                        }
+                      }
+                    }),
+              ];
+            },
+          ),
         ),
       ),
     );

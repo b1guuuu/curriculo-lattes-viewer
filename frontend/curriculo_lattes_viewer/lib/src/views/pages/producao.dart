@@ -24,7 +24,7 @@ class ProducaoPageState extends State<ProducaoPage> {
   final _trabalhoController = TrabalhoController();
   final _institutosController = InstitutosController();
   final _pesquisadoresController = PesquisadoresController();
-  final _tableController = PagedDataTableController<int, int, Trabalho>();
+  final _tableController = PagedDataTableController<String, Trabalho>();
   List<Instituto> _institutos = [];
   List<Pesquisador> _pesquisadores = [];
   bool _carregando = true;
@@ -68,102 +68,125 @@ class ProducaoPageState extends State<ProducaoPage> {
         body: _carregando
             ? const Carregando()
             : Flexible(
-              child: Container(
+                child: Container(
                   color: const Color.fromARGB(255, 208, 208, 208),
                   padding: const EdgeInsets.all(20.0),
                   child: Flexible(
                     child: Flexible(
-                      child: PagedDataTable<int, int, Trabalho>(
-                        rowsSelectable: true,
-                        idGetter: (trabalho) => trabalho.id,
+                      child: PagedDataTable<String, Trabalho>(
                         controller: _tableController,
-                        fetchPage: (pageToken, pageSize, sortBy, filtering) async {
-                          var temp = await _trabalhoController.filtrar(
-                              filtering.valueOrNullAs<String>('ano.inicio') == null
+                        fetcher: (int pageSize, SortModel? sortModel,
+                            FilterModel filterModel, String? pageToken) async {
+                          try {
+                            var temp = await _trabalhoController.filtrar(
+                                filterModel['ano.inicio'] == null
+                                    ? null
+                                    : int.parse(filterModel['ano.inicio']),
+                                filterModel['ano.fim'] == null
+                                    ? null
+                                    : int.parse(filterModel['ano.fim']),
+                                filterModel['instituto'] == null
+                                    ? null
+                                    : filterModel['instituto'].id,
+                                filterModel['pesquisador'] == null
+                                    ? null
+                                    : filterModel['pesquisador'].id,
+                                filterModel['tipo'] == null
+                                    ? null
+                                    : filterModel['tipo'],
+                                sortModel?.fieldName,
+                                (sortModel?.descending ?? false)
+                                    ? 'ASC'
+                                    : 'DESC',
+                                int.parse(pageToken ?? '0'),
+                                pageSize);
+                            var totalTrabalhos =
+                                await _trabalhoController.contar(
+                                    filterModel['ano.inicio'] == null
+                                        ? null
+                                        : int.parse(filterModel['ano.inicio']),
+                                    filterModel['ano.fim'] == null
+                                        ? null
+                                        : int.parse(filterModel['ano.fim']),
+                                    filterModel['instituto'] == null
+                                        ? null
+                                        : filterModel['instituto'].id,
+                                    filterModel['pesquisador'] == null
+                                        ? null
+                                        : filterModel['pesquisador'].id,
+                                    filterModel['tipo'] == null
+                                        ? null
+                                        : filterModel['tipo']);
+                            var nextPageToken =
+                                int.parse(pageToken ?? '0') + pageSize;
+                            return (
+                              temp,
+                              nextPageToken > totalTrabalhos
                                   ? null
-                                  : int.parse(filtering.valueOrNull('ano.inicio')),
-                              filtering.valueOrNullAs<String>('ano.fim') == null
-                                  ? null
-                                  : int.parse(filtering.valueOrNull('ano.fim')),
-                              filtering.valueOrNullAs<Instituto>('instituto')?.id,
-                              filtering.valueOrNullAs<Pesquisador>('pesquisador')?.id,
-                              filtering.valueOrNullAs<String>('tipo'),
-                              sortBy?.columnId,
-                              (sortBy?.descending ?? false) ? 'ASC' : 'DESC',
-                              pageToken,
-                              pageSize);
-                          var totalTrabalhos = await _trabalhoController.contar(
-                              filtering.valueOrNullAs<String>('ano.inicio') == null
-                                  ? null
-                                  : int.parse(filtering.valueOrNull('ano.inicio')),
-                              filtering.valueOrNullAs<String>('ano.fim') == null
-                                  ? null
-                                  : int.parse(filtering.valueOrNull('ano.fim')),
-                              filtering.valueOrNullAs<Instituto>('instituto')?.id,
-                              filtering.valueOrNullAs<Pesquisador>('pesquisador')?.id,
-                              filtering.valueOrNullAs<String>('tipo'));
-                          var nextPageToken = pageToken + pageSize;
-                          return PaginationResult.items(
-                              elements: temp,
-                              nextPageToken: nextPageToken > totalTrabalhos
-                                  ? null
-                                  : nextPageToken);
+                                  : nextPageToken.toString()
+                            );
+                          } catch (e) {
+                            print(e);
+
+                            return (List<Trabalho>.empty(), null);
+                          }
                         },
-                        initialPage: 0,
+                        initialPage: '0',
                         columns: [
                           TableColumn(
                               id: "tipo",
-                              title: "Tipo",
-                              cellBuilder: (trabalho) => Text(trabalho.tipo),
-                              sortable: true,
-                              sizeFactor: 0.1),
+                              title: const Text('Tipo'),
+                              cellBuilder: (context, trabalho, index) =>
+                                  Text(trabalho.tipo),
+                              sortable: true),
                           TableColumn(
                               id: "detalhamento",
-                              title: "Detalhamento",
-                              cellBuilder: (trabalho) => Text(
+                              title: const Text('Detalhamento'),
+                              cellBuilder: (context, trabalho, index) => Text(
                                     trabalho.formataDetalhamento(),
-                                    maxLines: 3,
+                                    maxLines: 5,
                                     softWrap: true,
                                   ),
                               sortable: false,
-                              sizeFactor: 0.8),
+                              size: const RemainingColumnSize()),
                         ],
                         filters: [
                           TextTableFilter(
                             id: "ano.inicio",
-                            title: "Ano inicício",
+                            name: "Ano inicício",
                             chipFormatter: (texto) => texto,
                           ),
                           TextTableFilter(
                               id: "ano.fim",
-                              title: "Ano fim",
+                              name: "Ano fim",
                               chipFormatter: (texto) => texto),
                           DropdownTableFilter(
-                            
                             id: 'instituto',
-                            title: 'Instituto',
+                            name: 'Instituto',
                             items: _institutos
                                 .map((instituto) => DropdownMenuItem(
                                       value: instituto,
                                       child: Text(instituto.nome),
                                     ))
                                 .toList(),
-                            chipFormatter: (instituto) => instituto.nome,
+                            chipFormatter: (instituto) =>
+                                (instituto as Instituto).nome,
                           ),
                           DropdownTableFilter(
                             id: 'pesquisador',
-                            title: 'Pesquisador',
+                            name: 'Pesquisador',
                             items: _pesquisadores
                                 .map((pesquisador) => DropdownMenuItem(
                                       value: pesquisador,
                                       child: Text(pesquisador.nome),
                                     ))
                                 .toList(),
-                            chipFormatter: (pesquisador) => pesquisador.nome,
+                            chipFormatter: (pesquisador) =>
+                                (pesquisador as Pesquisador).nome,
                           ),
                           DropdownTableFilter(
                             id: 'tipo',
-                            title: 'Tipo de publicação',
+                            name: 'Tipo de publicação',
                             items: const [
                               DropdownMenuItem(
                                 value: 'LIVRO',
@@ -172,13 +195,13 @@ class ProducaoPageState extends State<ProducaoPage> {
                               DropdownMenuItem(
                                   value: 'ARTIGO', child: Text('ARTIGO')),
                             ],
-                            chipFormatter: (tipo) => tipo,
+                            chipFormatter: (tipo) => tipo.toString(),
                           ),
                         ],
                       ),
                     ),
                   ),
                 ),
-            ));
+              ));
   }
 }
