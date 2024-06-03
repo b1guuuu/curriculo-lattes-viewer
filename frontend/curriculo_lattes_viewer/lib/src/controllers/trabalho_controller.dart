@@ -31,10 +31,13 @@ class TrabalhoController {
       Response resposta = await http.get(Uri.parse(
           '$_baseURL/filtrar?anoInicio=$anoInicio&anoFim=$anoFim&idInstituto=$idInstituto&idPesquisador=$idPesquisador&tipo=$tipo&orderBy=$orderBy&sort=$sort&posicaoInicial=$posicaoInicial&quantidadeItens=$quantidadeItens'));
       var respostaJson = jsonDecode(resposta.body);
+      print(respostaJson);
+      print(resposta.body);
       List<Trabalho> trabalhos = [];
       for (var trabalhoJson in respostaJson) {
         trabalhos.add(Trabalho.fromJson(trabalhoJson));
       }
+      print(trabalhos);
       return trabalhos;
     } catch (e) {
       print(e.toString());
