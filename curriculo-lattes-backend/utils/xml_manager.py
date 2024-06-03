@@ -16,7 +16,7 @@ class XmlManager:
         return self.read_xml(os.path.join(self.xml_base_directory, xml_file_name))
 
     def read_xml(self, xml_file_path = ''):
-        file = open(xml_file_path, encoding='latin-1')
+        file = open(xml_file_path, encoding='ISO-8859-1')
         file_string = file.read()
         file.close()
         return xmltodict.parse(file_string)

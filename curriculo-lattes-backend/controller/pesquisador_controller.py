@@ -3,17 +3,16 @@ from flask import request
 from flask_cors import cross_origin
 from flask_api import status
 from dao.pesquisador_dao import PesquisadorDao
-from dao.trabalho_dao import TrabalhoDao
-from dao.nome_citacao_dao import NomeCitacaoDao
+from dao.autoria_dao import AutoriaDao
 from model.pesquisador import Pesquisador
 from utils.xml_manager import XmlManager
+from utils.trabalho_manager import TrabalhoManager
 from flask import Blueprint
 from mysql.connector.errors import IntegrityError
 
 pesquisador_blueprint = Blueprint('pesquisador_blueprint', __name__)
 pesquisador_dao = PesquisadorDao()
-trabalho_dao = TrabalhoDao()
-nome_citacao_dao = NomeCitacaoDao()
+autoria_dao = AutoriaDao()
 
 # Função para chamar a lista
 @pesquisador_blueprint.route('/listar', methods=['GET'])
@@ -32,75 +31,31 @@ def create(codigo, id_instituto):
     if xml_file_name in xml_names:
         xml_dictionary = xml_manager.read_xml_in_base_directory(xml_file_name)
         pesquisador_id = codigo
-        pesquisador_nome = xml_dictionary['CURRICULO-VITAE']['DADOS-GERAIS']['@NOME-COMPLETO']
+        pesquisador_nome = xml_dictionary['CURRICULO-VITAE']['DADOS-GERAIS']['@NOME-COMPLETO'].lower().title()
+        pesquisador_nome_referencia = xml_dictionary['CURRICULO-VITAE']['DADOS-GERAIS']['@NOME-EM-CITACOES-BIBLIOGRAFICAS'].split(';')[0].lower().title()
 
         try:
-            pesquisador_dao.create(pesquisador_id, pesquisador_nome, id_instituto)
+            pesquisador_dao.create(pesquisador_id, pesquisador_nome, pesquisador_nome_referencia, id_instituto)
         except IntegrityError:
             return f'Já existe um pesquisador com código {codigo}', status.HTTP_400_BAD_REQUEST
-        
-        artigos = []
-        try:
-            artigos = xml_dictionary['CURRICULO-VITAE']['PRODUCAO-BIBLIOGRAFICA']['ARTIGOS-PUBLICADOS']['ARTIGO-PUBLICADO']
         except:
-            print('Não há artigos publicados pelo pesquisador')
-            artigos = []
-        capitulos = []
-        try:
-            capitulos = xml_dictionary['CURRICULO-VITAE']['PRODUCAO-BIBLIOGRAFICA']['LIVROS-E-CAPITULOS']['CAPITULOS-DE-LIVROS-PUBLICADOS']['CAPITULO-DE-LIVRO-PUBLICADO']
-        except:
-            print('Não há capítulos publicados pelo pesquisador')
-            capitulos = []
+            return 'Erro ao inserir pesquisador', status.HTTP_500_INTERNAL_SERVER_ERROR
         
-        livros = []
+        trabalho_manager = TrabalhoManager()
+
         try:
-            livros = xml_dictionary['CURRICULO-VITAE']['PRODUCAO-BIBLIOGRAFICA']['LIVROS-E-CAPITULOS']['LIVROS-PUBLICADOS-OU-ORGANIZADOS']['LIVRO-PUBLICADO-OU-ORGANIZADO']
+            trabalho_manager.create_trabalhos_tipo(xml_dictionary, 'ARTIGO')
         except:
-            print('Não há livros publicados pelo pesquisador')
-            livros = []
-        if(type(artigos) != type([])):
-            artigos = [artigos]
-        for artigo in artigos:
-            titulo = artigo['DADOS-BASICOS-DO-ARTIGO']['@TITULO-DO-ARTIGO']
-            ano = artigo['DADOS-BASICOS-DO-ARTIGO']['@ANO-DO-ARTIGO']
-            tipo = 'ARTIGO'
-            trabalho_dao.create(titulo, ano, tipo, pesquisador_id)
-            artigo_id = trabalho_dao.get_last_inserted_id()
-            autores = artigo['AUTORES']
-            if(type(autores) != type([])):
-                autores = [autores]
-            for autor in autores:
-                nome_citacao = autor['@NOME-PARA-CITACAO']
-                nome_citacao_dao.create(nome_citacao, artigo_id)
-        if(type(capitulos) != type([])):
-            capitulos = [capitulos]
-        for capitulo in capitulos:
-            titulo = capitulo['DADOS-BASICOS-DO-CAPITULO']['@TITULO-DO-CAPITULO-DO-LIVRO']
-            ano = capitulo['DADOS-BASICOS-DO-CAPITULO']['@ANO']
-            tipo = 'LIVRO'
-            trabalho_dao.create(titulo, ano, tipo, pesquisador_id)
-            capitulo_id = trabalho_dao.get_last_inserted_id()
-            autores = capitulo['AUTORES']
-            if(type(autores) != type([])):
-                autores = [autores]
-            for autor in autores:
-                nome_citacao = autor['@NOME-PARA-CITACAO']
-                nome_citacao_dao.create(nome_citacao, capitulo_id)
-        if(type(livros) != type([])):
-            livros = [livros]
-        for livro in livros:
-            titulo = livro['DADOS-BASICOS-DO-LIVRO']['@TITULO-DO-LIVRO']
-            ano = livro['DADOS-BASICOS-DO-LIVRO']['@ANO']
-            tipo = 'LIVRO'
-            trabalho_dao.create(titulo, ano, tipo, pesquisador_id)
-            livro_id = trabalho_dao.get_last_inserted_id()
-            autores = livro['AUTORES']
-            if(type(autores) != type([])):
-                autores = [autores]
-            for autor in autores:
-                nome_citacao = autor['@NOME-PARA-CITACAO']
-                nome_citacao_dao.create(nome_citacao, livro_id)
-        
+            return 'Erro ao inserir artigos',status.HTTP_500_INTERNAL_SERVER_ERROR
+        try:
+            trabalho_manager.create_trabalhos_tipo(xml_dictionary, 'CAPITULO')
+        except:
+            return 'Erro ao inserir capitulos',status.HTTP_500_INTERNAL_SERVER_ERROR
+        try:
+            trabalho_manager.create_trabalhos_tipo(xml_dictionary, 'LIVRO')
+        except:
+            return 'Erro ao inserir livros',status.HTTP_500_INTERNAL_SERVER_ERROR
+
         return f'Pesquisador cadastrado com sucesso', status.HTTP_201_CREATED
     else:
         return f'Não há arquivo com o código {codigo}', status.HTTP_404_NOT_FOUND
@@ -109,8 +64,13 @@ def create(codigo, id_instituto):
 @pesquisador_blueprint.route('/deletar/<id>', methods=['DELETE'])
 @cross_origin()
 def delete(id):
-    pesquisador_dao.delete(id)
-    return json.dumps("Deletado com sucesso")
+    try:
+        autoria_dao.delete_trabalhos_pesquisador(id)
+        pesquisador_dao.delete(id)
+        return f'Pesquisador deletado com sucesso', status.HTTP_204_NO_CONTENT
+    except:
+        return 'Erro ao excluir pesquisador',status.HTTP_500_INTERNAL_SERVER_ERROR
+
 
 @pesquisador_blueprint.route('/filtrar/', methods=['GET'])
 @cross_origin()

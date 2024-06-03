@@ -8,14 +8,13 @@ class PesquisadorDao:
         object_result = []
         for mysql_object in mysql_result:
             object_result.append(
-                Pesquisador(mysql_object[0], mysql_object[1], mysql_object[2], mysql_object[3]))
+                Pesquisador(mysql_object[0], mysql_object[1], mysql_object[2], mysql_object[3], mysql_object[4]))
         return object_result
 
-
     # CREATE
-    def create(self,id=None,nome=None,idInstituto=None):
-        sql = 'INSERT INTO pesquisador (id, nome, idInstituto) VALUES(%s, %s, %s)'
-        val = (id,nome,idInstituto)
+    def create(self,id=None,nome=None, nomeReferencia=None, idInstituto=None):
+        sql = 'INSERT INTO pesquisador (id, nome, nomeReferencia, idInstituto) VALUES(%s, %s, %s, %s)'
+        val = (id,nome,nomeReferencia,idInstituto)
         self.cursor.execute(sql,val)
         conexao.commit()
 
@@ -30,8 +29,10 @@ class PesquisadorDao:
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
-    def get_all_name(self):
-        self.cursor.execute('SELECT nome FROM pesquisador')
+    def get_by_nome_ou_referecia(self, nome='', nome_referencia=''):
+        sql = 'SELECT * FROM pesquisador WHERE nome = %s OR nomeReferencia = %s'
+        val = (nome, nome_referencia)
+        self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 

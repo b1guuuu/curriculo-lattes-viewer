@@ -1,8 +1,8 @@
 import mysql.connector
 
 conexao = mysql.connector.connect(database="dbcurriculo",
-                          host = "localhost",
-                          user = "root",
-                          password = "1234")
+                          host = "172.17.0.3",
+                          user = "igor",
+                          password = "root")
 # print(conexao.info)
 # print(conexao.status)

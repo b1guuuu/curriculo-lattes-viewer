@@ -1,5 +1,4 @@
 from model.trabalho import Trabalho
-from model.nome_citacao import NomeCitacao
 from config.configdb import conexao
 
 class TrabalhoDao:
@@ -9,13 +8,13 @@ class TrabalhoDao:
         object_result = []
         for mysql_object in mysql_result:
             object_result.append(
-                Trabalho(mysql_object[0], mysql_object[1], mysql_object[2], mysql_object[3], mysql_object[4]))
+                Trabalho(mysql_object[0], mysql_object[1], mysql_object[2], mysql_object[3]))
         return object_result
 
     # CRUD
-    def create(self, titulo=None, ano=None, tipo=None, idPesquisador=None):
-        sql = 'INSERT INTO trabalho (titulo, ano, tipo, idPesquisador) VALUES (%s, %s, %s, %s);'
-        val = (titulo, ano, tipo, idPesquisador)
+    def create(self, titulo=None, ano=None, tipo=None):
+        sql = 'INSERT INTO trabalho (titulo, ano, tipo) VALUES (%s, %s, %s);'
+        val = (titulo, ano, tipo)
         self.cursor.execute(sql,val)
         conexao.commit()
 
@@ -24,58 +23,34 @@ class TrabalhoDao:
         self.cursor.execute('SELECT * FROM trabalho')
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
-    
-    def get_id(self):
-        self.cursor.execute('SELECT id FROM trabalho')
-        resultado = self.cursor.fetchall()
-        return self.mysql_result_to_object_list(resultado)
 
-    def get_titulo(self):
-        self.cursor.execute('SELECT titulo FROM trabalho')
-        resultado = self.cursor.fetchall()
-        return self.mysql_result_to_object_list(resultado)
-    
-    def get_ano(self):
-        self.cursor.execute('SELECT ano FROM trabalho')
-        resultado = self.cursor.fetchall()
-        return self.mysql_result_to_object_list(resultado)
-    
-    def get_tipo(self):
-        self.cursor.execute('SELECT tipo FROM trabalho')
-        resultado = self.cursor.fetchall()
-        return self.mysql_result_to_object_list(resultado)
-    
-    # Delete
-    def delete(self, id):
-        comando = ('DELETE FROM trabalho WHERE id ='+str(id))
-        self.cursor.execute(comando)
-        conexao.commit()
-
-    # UPDATE
-    def update(self,id=None, titulo=None, ano=None, tipo=None):
-        sql = 'UPDATE trabalho SET titulo=%s, ano=%d, tipo=%s WHERE id='+str(id)
+    def get_by_columns(self, titulo=None, ano=None, tipo=None):
+        sql = 'SELECT * FROM trabalho WHERE titulo=%s AND ano=%s AND tipo=%s'
         val = (titulo, ano, tipo)
         self.cursor.execute(sql, val)
-        conexao.commit()
-
+        resultado = self.cursor.fetchall()
+        return self.mysql_result_to_object_list(resultado)
+    
     def get_last_inserted_id(self):
         return self.cursor.lastrowid
 
-     # FILTER
     def filter(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None, orderBy=None, sort=None, posicaoInicial=1, quantidadeItens=100):
-        sql = 'SELECT trabalho.id, trabalho.titulo, trabalho.ano, trabalho.tipo, trabalho.idPesquisador, nomecitacao.id, nomecitacao.nome, nomecitacao.idTrabalho FROM trabalho '
-        sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho '
-        
+        sql = 'SELECT trabalho.* FROM trabalho '
+
         filtros = []
         if ano_inicio != 'null':
             filtros.append('trabalho.ano >= ' + str(ano_inicio))
         if ano_fim != 'null':
             filtros.append('trabalho.ano <= ' + str(ano_fim))
         if id_instituto != 'null':
-            sql += 'INNER JOIN pesquisador ON trabalho.idPesquisador=pesquisador.id '
+            sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+            sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
             filtros.append("pesquisador.idInstituto = " + str(id_instituto))
         if id_pesquisador != 'null':
-            filtros.append("trabalho.idPesquisador = '" + id_pesquisador + "'")
+            if 'INNER JOIN' not in sql:
+                sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+                sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
+            filtros.append("pesquisador.id = '" + id_pesquisador + "'")
         if tipo != 'null':
             filtros.append("trabalho.tipo = '" + tipo + "'")
 
@@ -85,38 +60,57 @@ class TrabalhoDao:
             sql += "ORDER BY " + orderBy + " " + sort + " "
 
         sql+='LIMIT ' + posicaoInicial + ', ' + quantidadeItens + ';'
-        print(sql)
         self.cursor.execute(sql)
-        resultado = self.cursor.fetchall()
+        trabalhos = self.cursor.fetchall()
+        ids_str = '('
 
-        ultimo_id = -1
+        for linha in trabalhos:
+            ids_str += str(linha[0]) + ','
+        ids_str += str(linha[0]) + ')'
+        sql = f"""
+            SELECT
+                autor_nao_cadastrado.idTrabalho,
+                autor_nao_cadastrado.nomeReferencia
+            FROM
+                autor_nao_cadastrado
+            WHERE
+                autor_nao_cadastrado.idTrabalho in {ids_str}
+            UNION
+            SELECT
+                autor_cadastrado.idTrabalho,
+                pesquisador.nomeReferencia
+            FROM
+                autor_cadastrado
+            INNER JOIN pesquisador ON
+                autor_cadastrado.idPesquisador = pesquisador.id
+            WHERE
+                autor_cadastrado.idTrabalho in {ids_str};
+        """
+        
+        self.cursor.execute(sql)
+        nomes = self.cursor.fetchall()
         trabalhos_com_nomes = []
-        trabalho = None
 
-        for linha in resultado:
-            if linha[0] != ultimo_id:
-                if ultimo_id != -1:
-                    trabalhos_com_nomes.append(trabalho)
-                ultimo_id = linha[0]
-                trabalho = {
+        for linha in trabalhos:
+            trabalho = {
                     'id': linha[0],
                     'titulo': linha[1],
                     'ano': linha[2],
                     'tipo': linha[3],
-                    'idPesquisador': linha[4],
                     'nomes': []
                 }
-            trabalho['nomes'].append({
-                'id': linha[5],
-                'nome': linha[6],
-                'idTrabalho': linha[7]
-            })
+            for nome in nomes:
+                if nome[0] == trabalho['id']:
+                    trabalho['nomes'].append(nome[1])
+            trabalhos_com_nomes.append(trabalho)
+
         return trabalhos_com_nomes
 
+     # FILTER
+    
     # COUNT
     def count(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
-        sql = 'SELECT COUNT(trabalho.id) FROM trabalho '
-        sql += 'LEFT JOIN nomecitacao ON trabalho.id=nomecitacao.idTrabalho '   
+        sql = 'SELECT COUNT(trabalho.id) FROM trabalho ' 
 
         filtros = []
         if ano_inicio != 'null':
@@ -124,16 +118,19 @@ class TrabalhoDao:
         if ano_fim != 'null':
             filtros.append('trabalho.ano <= ' + str(ano_fim))
         if id_instituto != 'null':
-            sql += 'INNER JOIN pesquisador ON trabalho.idPesquisador=pesquisador.id '
+            sql += 'INNER JOIN autoria ON autoria.idTrabalho=trabalho.id '
+            sql += 'INNER JOIN pesquisador ON autoria.idPesquisador=pesquisador.id '
             filtros.append("pesquisador.idInstituto = " + str(id_instituto))
         if id_pesquisador != 'null':
-            filtros.append("trabalho.idPesquisador = '" + id_pesquisador + "'")
+            if 'INNER JOIN' not in sql:
+                sql += 'INNER JOIN autoria ON autoria.idTrabalho=trabalho.id '
+                sql += 'INNER JOIN pesquisador ON autoria.idPesquisador=pesquisador.id '
+            filtros.append("pesquisador.id = '" + id_pesquisador + "'")
         if tipo != 'null':
             filtros.append("trabalho.tipo = '" + tipo + "'")
 
         if len(filtros) > 0:
             sql += 'WHERE ' + ' AND '.join(filtros) + ' '
-        print(sql)
 
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
