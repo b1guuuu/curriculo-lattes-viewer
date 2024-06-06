@@ -57,53 +57,69 @@ class DropboxPesquisadorState extends State<DropboxPesquisador> {
                       width: 10,
                     ),
                     Expanded(
-                      child: DropDownMultiSelect(
-                        decoration: InputDecoration(
-                          fillColor: Theme.of(context).colorScheme.onPrimary,
-                          focusColor: Theme.of(context).colorScheme.onPrimary,
-                          enabledBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(4)),
-                            borderSide:
-                                BorderSide(color: Colors.grey, width: 1.5),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(4)),
-                            borderSide: BorderSide(
-                              color: Color.fromARGB(255, 208, 208, 208),
-                              width: 1.8,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.1,
+                        child: DropDownMultiSelect(
+                          decoration: InputDecoration(
+                            fillColor: Theme.of(context).colorScheme.onPrimary,
+                            focusColor: Theme.of(context).colorScheme.onPrimary,
+                            enabledBorder: const OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide:
+                                  BorderSide(color: Colors.grey, width: 1.5),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(4)),
+                              borderSide: BorderSide(
+                                color: Color.fromARGB(255, 208, 208, 208),
+                                width: 1.8,
+                              ),
                             ),
                           ),
-                        ),
-                        options: ['  Selecionar Todos', ...allNomes],
-                        selectedValues: selectedPesquisadores,
-                        onChanged: (List<String> values) {
-                          setState(() {
-                            if (values.contains('  Selecionar Todos')) {
-                              if (selectedPesquisadores.length ==
-                                  allNomes.length + 1) {
-                                selectedPesquisadores = [];
+                          options: ['  Selecionar Todos', ...allNomes],
+                          selectedValues: selectedPesquisadores,
+                          onChanged: (List<String> values) {
+                            setState(() {
+                              if (values.contains('  Selecionar Todos')) {
+                                if (selectedPesquisadores.length ==
+                                    allNomes.length + 1) {
+                                  selectedPesquisadores = [];
+                                } else {
+                                  selectedPesquisadores = [
+                                    '  Selecionar Todos',
+                                    ...allNomes
+                                  ];
+                                }
                               } else {
-                                selectedPesquisadores = [
-                                  '  Selecionar Todos',
-                                  ...allNomes
-                                ];
+                                selectedPesquisadores = values;
                               }
-                            } else {
-                              selectedPesquisadores = values;
-                            }
-                          });
-                        },
-                        whenEmpty: '  Selecione Pesquisadores',
-                        childBuilder: (List<String> selectedValues) {
-                          return Text(
-                            selectedValues.isEmpty ||
-                                    selectedValues
-                                        .contains('  Selecionar Todos')
-                                ? '  Selecione Pesquisadores'
-                                : '  Selecione Pesquisadores',
-                            style: const TextStyle(color: Colors.black54),
-                          );
-                        },
+                            });
+                          },
+                          whenEmpty: '  Selecione Pesquisadores',
+                          menuItembuilder: (option) => SizedBox(
+                            width: MediaQuery.of(context).size.width / 5,
+                            child: Text(
+                              option,
+                              style: const TextStyle(
+                                  overflow: TextOverflow.ellipsis),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                          ),
+                          childBuilder: (List<String> selectedValues) {
+                            return Text(
+                              selectedValues.isEmpty ||
+                                      selectedValues
+                                          .contains('  Selecionar Todos')
+                                  ? '  Selecione Pesquisadores'
+                                  : '  Selecione Pesquisadores',
+                              style: const TextStyle(color: Colors.black54),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ],
