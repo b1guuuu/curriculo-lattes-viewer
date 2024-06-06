@@ -32,7 +32,7 @@ class PesquisadorDao:
     def get_by_nome_ou_referecia(self, nome='', nome_referencia=''):
         sql = 'SELECT * FROM pesquisador WHERE nome = %s OR nomeReferencia = %s'
         val = (nome, nome_referencia)
-        self.cursor.execute(sql)
+        self.cursor.execute(sql, val)
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 

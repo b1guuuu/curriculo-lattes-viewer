@@ -45,9 +45,7 @@ class AutoriaDao:
         conexao.commit()
 
     def get_autor_nao_cadastrado_by_nome(self, nome=None):
-        sql = 'SELECT * FROM autor_nao_cadastrado WHERE UPPER(nome) LIKE \''
-        sql += nome.upper()
-        sql += '\''
+        sql = f'SELECT * FROM autor_nao_cadastrado WHERE nome = \'{nome}\''
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         autores = []

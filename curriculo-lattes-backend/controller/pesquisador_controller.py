@@ -43,9 +43,11 @@ def create(codigo, id_instituto):
         
         trabalho_manager = TrabalhoManager()
 
+        trabalho_manager.create_trabalhos_tipo(xml_dictionary, 'ARTIGO')
         try:
-            trabalho_manager.create_trabalhos_tipo(xml_dictionary, 'ARTIGO')
-        except:
+            print('')
+        except Exception as e:
+            print(e)
             return 'Erro ao inserir artigos',status.HTTP_500_INTERNAL_SERVER_ERROR
         try:
             trabalho_manager.create_trabalhos_tipo(xml_dictionary, 'CAPITULO')
