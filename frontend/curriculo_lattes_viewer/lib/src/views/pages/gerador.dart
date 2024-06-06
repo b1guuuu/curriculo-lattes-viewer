@@ -168,6 +168,7 @@ class GeradorPageState extends State<GeradorPage> {
                                                     1;
                                           }
                                         });
+                                        print(_vertexValues);
                                       },
                                       decoration: const InputDecoration(
                                         border: OutlineInputBorder(),
