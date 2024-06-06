@@ -118,13 +118,13 @@ class TrabalhoDao:
         if ano_fim != 'null':
             filtros.append('trabalho.ano <= ' + str(ano_fim))
         if id_instituto != 'null':
-            sql += 'INNER JOIN autoria ON autoria.idTrabalho=trabalho.id '
-            sql += 'INNER JOIN pesquisador ON autoria.idPesquisador=pesquisador.id '
+            sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+            sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
             filtros.append("pesquisador.idInstituto = " + str(id_instituto))
         if id_pesquisador != 'null':
             if 'INNER JOIN' not in sql:
-                sql += 'INNER JOIN autoria ON autoria.idTrabalho=trabalho.id '
-                sql += 'INNER JOIN pesquisador ON autoria.idPesquisador=pesquisador.id '
+                sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+                sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
             filtros.append("pesquisador.id = '" + id_pesquisador + "'")
         if tipo != 'null':
             filtros.append("trabalho.tipo = '" + tipo + "'")
