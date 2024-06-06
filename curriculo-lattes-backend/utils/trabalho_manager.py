@@ -86,26 +86,30 @@ class TrabalhoManager:
         }
 
     def create_trabalhos_tipo(self, xml_dictionary=None, tipo=None):
+        tipo_salvar = ''
         if xml_dictionary == None : 
             raise Exception('Necessário dicionário xml')
         trabalhos = []
         if tipo == 'ARTIGO':
             trabalhos = self.get_artigos(xml_dictionary)
+            tipo_salvar = 'ARTIGO'
         elif tipo == 'CAPITULO':
             trabalhos = self.get_capitulos(xml_dictionary)
+            tipo_salvar = 'LIVRO'
         elif tipo == 'LIVRO':
             trabalhos = self.get_livros(xml_dictionary)
+            tipo_salvar = 'LIVRO'
         else:
             raise Exception('Tipo não suportado')
         
         for trabalho in trabalhos:
             dados_basicos = self.get_dados_basicos(trabalho, tipo)
-            trabalho_existe = self.trabalho_dao.get_by_columns(dados_basicos['titulo'], dados_basicos['ano'], tipo)
+            trabalho_existe = self.trabalho_dao.get_by_columns(dados_basicos['titulo'], dados_basicos['ano'], tipo_salvar)
             id_trabalho = -1
             if len(trabalho_existe) > 0:
                 id_trabalho = trabalho_existe[0].id
             else:
-                self.trabalho_dao.create(dados_basicos['titulo'], dados_basicos['ano'], tipo)
+                self.trabalho_dao.create(dados_basicos['titulo'], dados_basicos['ano'], tipo_salvar)
                 id_trabalho = self.trabalho_dao.get_last_inserted_id()
 
             autores = trabalho['AUTORES']
@@ -118,11 +122,16 @@ class TrabalhoManager:
 
                 try:
                     if len(autor_cadastrado) > 0:
-                        if len(autor_nao_cadastrado) > 0:
-                            self.autoria_dao.delete_autor_nao_cadastrado(id_trabalho, autor_nao_cadastrado[0]['ordem'])
+                        self.ajuste_autorias(autor_nao_cadastrado, autor_cadastrado[0].id)
                         self.autoria_dao.create_autor_cadastrado(autor_cadastrado[0].id, id_trabalho, dados_basicos_autor['ordem'])
                     else:
                         self.autoria_dao.create_autor_nao_cadastrado(id_trabalho, dados_basicos_autor['ordem'], dados_basicos_autor['nome'], dados_basicos_autor['nome_referencia'])
                 except:
                     print('Autor já inserido')
+
+    def ajuste_autorias(self, autorias=None, id_autor=None):
+        for autor in autorias:
+            self.autoria_dao.delete_autor_nao_cadastrado(autor['idTrabalho'], autor['ordem'])
+            self.autoria_dao.create_autor_cadastrado(id_autor,autor['idTrabalho'], autor['ordem'])
+
 
