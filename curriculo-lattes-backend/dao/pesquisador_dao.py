@@ -8,7 +8,7 @@ class PesquisadorDao:
         object_result = []
         for mysql_object in mysql_result:
             object_result.append(
-                Pesquisador(mysql_object[0], mysql_object[1], mysql_object[2], mysql_object[3], mysql_object[4]))
+                Pesquisador(id=mysql_object[0], nome=mysql_object[1], nomeReferencia=mysql_object[2], email=mysql_object[3], idInstituto=mysql_object[4]))
         return object_result
 
     # CREATE
@@ -22,6 +22,7 @@ class PesquisadorDao:
     def get_all(self):
         self.cursor.execute('SELECT * FROM pesquisador')
         resultado = self.cursor.fetchall()
+        print(resultado[0])
         return self.mysql_result_to_object_list(resultado)
 
     def get_all_id(self):
