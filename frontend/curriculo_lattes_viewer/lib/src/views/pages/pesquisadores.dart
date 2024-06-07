@@ -51,7 +51,7 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
 
   Future<void> _excluirPesquisadorSelecionado() async {
     var pesquisador = _tableController.selectedItems.first;
-    await _pesquisadoresController.deletar(pesquisador.id);
+    await _pesquisadoresController.deletar(pesquisador.id!);
     setState(() {
       _tableController.unselectAllRows();
       _tableController.refresh();
@@ -135,14 +135,13 @@ class PesquisadoresPageState extends State<PesquisadoresPage> {
                 id: "pesquisador.nome",
                 title: const Text('Nome'),
                 cellBuilder: (context, pesquisador, index) =>
-                    Text(pesquisador.nome),
+                    Text(pesquisador.nome!),
                 sortable: true,
                 size: const FractionalColumnSize(0.15)),
             TableColumn(
               id: "email",
               title: const Text('Email'),
-              cellBuilder: (context, pesquisador, index) =>
-                  Text(pesquisador.email),
+              cellBuilder: (context, pesquisador, index) => const Text(''),
               sortable: false,
             ),
             TableColumn(

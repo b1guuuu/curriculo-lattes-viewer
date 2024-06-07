@@ -178,11 +178,11 @@ class ProducaoPageState extends State<ProducaoPage> {
                             items: _pesquisadores
                                 .map((pesquisador) => DropdownMenuItem(
                                       value: pesquisador,
-                                      child: Text(pesquisador.nome),
+                                      child: Text(pesquisador.nome!),
                                     ))
                                 .toList(),
                             chipFormatter: (pesquisador) =>
-                                (pesquisador as Pesquisador).nome,
+                                (pesquisador as Pesquisador).nome!,
                           ),
                           DropdownTableFilter(
                             id: 'tipo',

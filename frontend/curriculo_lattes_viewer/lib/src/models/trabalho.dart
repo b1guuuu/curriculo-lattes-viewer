@@ -25,7 +25,7 @@ class Trabalho {
       "titulo": titulo,
       "ano": ano,
       "tipo": tipo,
-      "nomes": nomes
+      "nomes": nomes.toString()
     };
   }
 

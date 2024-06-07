@@ -39,7 +39,7 @@ class DropboxPesquisadorState extends State<DropboxPesquisador> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     List<String> allNomes =
-        _pesquisadores.map((pesquisador) => pesquisador.nome).toList();
+        _pesquisadores.map((pesquisador) => pesquisador.nome!).toList();
 
     return _carregando
         ? const Carregando()
