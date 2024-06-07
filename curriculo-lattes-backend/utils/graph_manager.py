@@ -14,19 +14,86 @@ def gerar_grafo_vertice_instituto():
     
     for instituto in institutos:
         graph.add_node(instituto.acronimo)
-        print(instituto.acronimo)
         relacoes = graph_dao.get_by_instituto(instituto.id)
         if len(relacoes) > 0:
             for relacao in relacoes:
-                print(f'-{relacao}')
                 if instituto.acronimo != relacao[0]:
-                    graph.add_edge(instituto.acronimo, relacao[0])
+                    if (instituto.acronimo, relacao[0]) in graph.edges():
+                        att_dic = graph.get_edge_data(instituto.acronimo, relacao[0])
+                        graph.remove_edge(instituto.acronimo, relacao[0])
+                        graph.add_edge(instituto.acronimo, relacao[0], label=att_dic['label']+1)
+                    else:
+                        graph.add_edge(instituto.acronimo, relacao[0], label=1)
+    pos = nx.circular_layout(graph)
+    plt.figure(figsize=[16,9])
+    nx.draw(
+        graph,
+        pos,
+        edge_color='black',
+        width=1,
+        linewidths=1,
+        node_size=1000,
+        node_color='pink',
+        alpha=0.9,
+        labels={node: node for node in graph.nodes()}
+    )
+    labels = {}
+    for edge in graph.edges():
+        att_dic = graph.get_edge_data(edge[0], edge[1])
+        labels[edge] = att_dic['label']
+    print(labels)
+    nx.draw_networkx_edge_labels(
+        graph,
+        pos,
+        edge_labels={edge: labels[edge] for edge in graph.edges()}
+    )
+    plt.axis('off')
+    plt.savefig('Graph_instituto.png', format='PNG')
+    plt.show()
+
+def gerar_grafo_vertice_pesquisador():
+    graph = nx.Graph()
+    graph_dao = GraphDao()
+    pesquisador_dao = PesquisadorDao()
+    pesquisadores = pesquisador_dao.get_all()
     
-    print(graph.edges)
-    pos = nx.spring_layout(graph)
-    nx.draw_networkx_nodes(graph, pos)
-    nx.draw_networkx_labels(graph, pos)
-    nx.draw_networkx_edges(graph, pos, arrows=False)
-    nx.draw_networkx_edge_labels(graph, pos)
+    for pesquisador in pesquisadores:
+        graph.add_node(pesquisador.nome)
+        relacoes = graph_dao.get_by_pesquisador(pesquisador.id)
+        if len(relacoes) > 0:
+            for relacao in relacoes:
+                if pesquisador.nome != relacao[0]:
+                    if (pesquisador.nome, relacao[0]) in graph.edges():
+                        att_dic = graph.get_edge_data(pesquisador.nome, relacao[0])
+                        graph.remove_edge(pesquisador.nome, relacao[0])
+                        graph.add_edge(pesquisador.nome, relacao[0], label=att_dic['label']+1)
+                    else:
+                        graph.add_edge(pesquisador.nome, relacao[0], label=1)
+    
+    pos = nx.circular_layout(graph)
+    plt.figure(figsize=[500,10])
+    nx.draw(
+        graph,
+        pos,
+        edge_color='black',
+        width=1,
+        linewidths=1,
+        node_size=1000,
+        node_color='pink',
+        alpha=0.9,
+        labels={node: node for node in graph.nodes()},
+    )
+    labels = {}
+    for edge in graph.edges():
+        att_dic = graph.get_edge_data(edge[0], edge[1])
+        labels[edge] = att_dic['label']
+    print(labels)
+    nx.draw_networkx_edge_labels(
+        graph,
+        pos,
+        edge_labels={edge: labels[edge] for edge in graph.edges()}
+    )
+    plt.axis('off')
+    plt.savefig('Graph_pesquisador.png', format='PNG')
     plt.show()
         
