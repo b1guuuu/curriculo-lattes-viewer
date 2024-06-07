@@ -4,13 +4,10 @@ import 'package:curriculo_lattes_viewer/src/controllers/pesquisadores_controller
 import 'package:curriculo_lattes_viewer/src/controllers/trabalho_controller.dart';
 import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
 import 'package:curriculo_lattes_viewer/src/models/pesquisador.dart';
+import 'package:curriculo_lattes_viewer/src/models/regra_plotagem_grafo.dart';
 import 'package:curriculo_lattes_viewer/src/models/trabalho.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/carregando.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/dropbox.dart';
-import 'package:curriculo_lattes_viewer/src/views/components/dropbox_instituto.dart';
-import 'package:curriculo_lattes_viewer/src/views/components/dropbox_pesquisador.dart';
-import 'package:curriculo_lattes_viewer/src/views/components/dropbox_producao.dart';
-import 'package:curriculo_lattes_viewer/src/views/components/dropbox_vertices.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
 import 'package:flutter/material.dart';
 
@@ -26,12 +23,45 @@ class GeradorPage extends StatefulWidget {
 }
 
 class GeradorPageState extends State<GeradorPage> {
-  List<String> _selectedColors = List.filled(3, 'Vermelho');
-  List<Map<String, int>> _vertexValues = [
-    {'inicio': 1, 'fim': 2},
-    {'inicio': 3, 'fim': 4},
-    {'inicio': 4, 'fim': 5},
+  final _cores = [
+    {"label": "Vermelho", "value": "red"},
+    {"label": "Amarelo", "value": "yellow"},
+    {"label": "Verde", "value": "green"},
   ];
+
+  final List<RegraPlotagemGrafo> _regrasPlotagem = [
+    RegraPlotagemGrafo(
+        cor: 'red',
+        inicio: NP(
+            controller: TextEditingController.fromValue(
+                const TextEditingValue(text: '1')),
+            readonly: true),
+        fim: NP(
+            controller: TextEditingController.fromValue(
+                const TextEditingValue(text: '2')),
+            readonly: false)),
+    RegraPlotagemGrafo(
+        cor: 'yellow',
+        inicio: NP(
+            controller: TextEditingController.fromValue(
+                const TextEditingValue(text: '3')),
+            readonly: true),
+        fim: NP(
+            controller: TextEditingController.fromValue(
+                const TextEditingValue(text: '4')),
+            readonly: false)),
+    RegraPlotagemGrafo(
+        cor: 'green',
+        inicio: NP(
+            controller: TextEditingController.fromValue(
+                const TextEditingValue(text: '5')),
+            readonly: true),
+        fim: NP(
+            controller: TextEditingController.fromValue(
+                const TextEditingValue(text: ' >= 5')),
+            readonly: true))
+  ];
+
   late DropboxController _institutosDropboxController;
   late DropboxController _pesquisadoresDropboxController;
   late DropboxController _trabalhosDropboxController;
@@ -119,7 +149,6 @@ class GeradorPageState extends State<GeradorPage> {
     for (var pesquisador in pesquisadoresFiltrados) {
       pesquisadoresMapList.add(pesquisador.toMap());
     }
-    print(pesquisadoresMapList);
     setState(() {
       _pesquisadoresDropboxController = DropboxController(
           items: pesquisadoresMapList,
@@ -154,6 +183,19 @@ class GeradorPageState extends State<GeradorPage> {
       _trabalhosDropboxController.selectedItems = [...trabalhosMapList];
       _trabalhosDropboxController.loading = false;
     });
+  }
+
+  void _onChangeNP(String text, int index) {
+    if (text.trim().isNotEmpty) {
+      setState(() {
+        _regrasPlotagem[1].inicio.controller.text =
+            '${_regrasPlotagem[0].fim.getValue() + 1}';
+        _regrasPlotagem[2].inicio.controller.text =
+            '${_regrasPlotagem[1].fim.getValue() + 1}';
+        _regrasPlotagem[2].fim.controller.text =
+            ' >= ${_regrasPlotagem[2].inicio.controller.text}';
+      });
+    }
   }
 
   @override
@@ -253,72 +295,51 @@ class GeradorPageState extends State<GeradorPage> {
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: DropdownButton<String>(
-                                      value: _selectedColors[i],
-                                      items: <String>[
-                                        'Vermelho',
-                                        'Amarelo',
-                                        'Verde'
-                                      ].map((String value) {
+                                      value: _regrasPlotagem[i].cor,
+                                      items: _cores.map((dynamic cor) {
                                         return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
+                                          value: cor['value'],
+                                          child: Text(cor['label']),
                                         );
                                       }).toList(),
                                       onChanged: (String? newValue) {
                                         setState(() {
-                                          _selectedColors[i] = newValue!;
+                                          _regrasPlotagem[i].cor = newValue!;
                                         });
                                       },
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(_vertexValues[i]['inicio']
-                                          .toString()),
+                                    child: TextField(
+                                      keyboardType: TextInputType.number,
+                                      autocorrect: false,
+                                      controller:
+                                          _regrasPlotagem[i].inicio.controller,
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 0, horizontal: 8),
+                                      ),
+                                      readOnly:
+                                          _regrasPlotagem[i].inicio.readonly,
                                     ),
                                   ),
                                   Padding(
                                     padding: const EdgeInsets.all(8.0),
-                                    child: i == 0 ||
-                                            i ==
-                                                1 // Make the third row editable
-                                        ? TextField(
-                                            keyboardType: TextInputType.number,
-                                            autocorrect: false,
-                                            onChanged: (text) {
-                                              setState(() {
-                                                _vertexValues[i]['fim'] =
-                                                    int.parse(text);
-                                                _vertexValues[i + 1]['inicio'] =
-                                                    int.parse(text) + 1;
-
-                                                if (_vertexValues[i + 1]
-                                                        ['inicio']! >
-                                                    _vertexValues[i + 1]
-                                                        ['fim']!) {
-                                                  _vertexValues[i + 1]['fim'] =
-                                                      _vertexValues[i + 1]
-                                                              ['inicio']! +
-                                                          1;
-                                                }
-                                              });
-                                              print(_vertexValues);
-                                            },
-                                            decoration: const InputDecoration(
-                                              border: OutlineInputBorder(),
-                                              contentPadding:
-                                                  EdgeInsets.symmetric(
-                                                      vertical: 0,
-                                                      horizontal: 8),
-                                            ),
-                                          )
-                                        : Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(_vertexValues[i]['fim']
-                                                .toString()),
-                                          ),
+                                    child: TextField(
+                                      keyboardType: TextInputType.number,
+                                      autocorrect: false,
+                                      controller:
+                                          _regrasPlotagem[i].fim.controller,
+                                      onChanged: (text) => _onChangeNP(text, i),
+                                      decoration: const InputDecoration(
+                                        border: OutlineInputBorder(),
+                                        contentPadding: EdgeInsets.symmetric(
+                                            vertical: 0, horizontal: 8),
+                                      ),
+                                      readOnly: _regrasPlotagem[i].fim.readonly,
+                                    ),
                                   ),
                                 ],
                               ),

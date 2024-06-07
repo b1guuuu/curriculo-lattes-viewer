@@ -159,8 +159,6 @@ class DropboxWithoutOptionAllState extends State<Dropbox> {
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
     var mainContainerWidth = screenWidth / 4;
-    var optionContainerWidth = mainContainerWidth - 50;
-    var optionTextWidth = optionContainerWidth - 150;
 
     return Container(
       width: mainContainerWidth,
