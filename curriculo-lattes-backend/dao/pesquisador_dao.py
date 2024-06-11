@@ -20,9 +20,15 @@ class PesquisadorDao:
 
     # READ
     def get_all(self):
-        self.cursor.execute('SELECT * FROM pesquisador')
+        self.cursor.execute('SELECT * FROM pesquisador ORDER BY nome')
         resultado = self.cursor.fetchall()
-        print(resultado[0])
+        return self.mysql_result_to_object_list(resultado)
+
+    # READ
+    def get_group(self, ids = []):
+        ids_filter = ','.join(f"'{id}'" for id in ids)
+        self.cursor.execute(f'SELECT * FROM pesquisador WHERE id IN ({ids_filter})')
+        resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
     def get_all_id(self):

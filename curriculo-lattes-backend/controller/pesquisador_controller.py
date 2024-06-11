@@ -93,7 +93,6 @@ def filter():
 @cross_origin()
 def buscarArquivo(codigo):
     xml_file_name = f'{codigo}.xml'
-    print(xml_file_name)
     xml_manager = XmlManager()
     xml_names = xml_manager.get_all_xml_names()
     if xml_file_name in xml_names:

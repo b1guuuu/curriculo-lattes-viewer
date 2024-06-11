@@ -20,7 +20,15 @@ class InstitutoDao:
 
     # READ
     def get_all(self):
-        self.cursor.execute('SELECT * FROM instituto')
+        self.cursor.execute('SELECT * FROM instituto ORDER BY nome')
+        resultado = self.cursor.fetchall()
+        return self.mysql_result_to_object_list(resultado)
+    
+    # READ
+    def get_group(self, ids=[]):
+        my_ids = ','.join(str(id) for id in ids)
+        sql = f'SELECT * FROM instituto WHERE id IN ({my_ids})'
+        self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
