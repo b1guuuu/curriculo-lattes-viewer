@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_null_aware_operators, prefer_if_null_operators
+
 import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
 import 'package:curriculo_lattes_viewer/src/controllers/pesquisadores_controller.dart';
 import 'package:curriculo_lattes_viewer/src/controllers/trabalho_controller.dart';

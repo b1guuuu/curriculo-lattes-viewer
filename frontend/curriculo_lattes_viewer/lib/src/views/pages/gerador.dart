@@ -1,15 +1,17 @@
 import 'package:curriculo_lattes_viewer/src/controllers/dropbox_controller.dart';
+import 'package:curriculo_lattes_viewer/src/controllers/graph_controller.dart';
 import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
 import 'package:curriculo_lattes_viewer/src/controllers/pesquisadores_controller.dart';
-import 'package:curriculo_lattes_viewer/src/controllers/trabalho_controller.dart';
 import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
 import 'package:curriculo_lattes_viewer/src/models/pesquisador.dart';
 import 'package:curriculo_lattes_viewer/src/models/regra_plotagem_grafo.dart';
-import 'package:curriculo_lattes_viewer/src/models/trabalho.dart';
+import 'package:curriculo_lattes_viewer/src/utils/graph_options_builder.dart';
+import 'package:curriculo_lattes_viewer/src/utils/np_rules_validator.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/carregando.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/dropbox.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
 import 'package:flutter/material.dart';
+import 'package:quickalert/quickalert.dart';
 
 class GeradorPage extends StatefulWidget {
   static const rota = 'gerador';
@@ -27,6 +29,12 @@ class GeradorPageState extends State<GeradorPage> {
     {"label": "Vermelho", "value": "red"},
     {"label": "Amarelo", "value": "yellow"},
     {"label": "Verde", "value": "green"},
+  ];
+
+  final _tipoProducao = [
+    {'id': 1, 'label': 'Todos'},
+    {'id': 2, 'label': 'Livro'},
+    {'id': 3, 'label': 'Artigo'},
   ];
 
   final List<RegraPlotagemGrafo> _regrasPlotagem = [
@@ -64,13 +72,14 @@ class GeradorPageState extends State<GeradorPage> {
 
   late DropboxController _institutosDropboxController;
   late DropboxController _pesquisadoresDropboxController;
-  late DropboxController _trabalhosDropboxController;
   late DropboxController _verticeDropboxController;
+  late DropboxController _tipoProducaoDropboxController;
   late List<Instituto> _institutos;
   late List<Pesquisador> _pesquisadores;
-  late List<Trabalho> _trabalhos;
+  late dynamic _grafo;
 
   bool _carregando = true;
+  bool _displayGrafo = false;
 
   @override
   void initState() {
@@ -85,16 +94,13 @@ class GeradorPageState extends State<GeradorPage> {
     });
     var institutos = await InstitutosController().listar();
     var pesquisadores = await PesquisadoresController().listar();
-    var trabalhos = await TrabalhoController()
-        .filtrar(null, null, null, null, null, null, null, 0, 600);
     setState(() {
       _institutos = institutos;
       _pesquisadores = pesquisadores;
-      _trabalhos = trabalhos;
     });
     defineInstitutosDropboxController();
     definePesquisadoresDropboxController();
-    defineTrabalhosDropboxController();
+    defineTipoProducaoDropboxController();
     setState(() {
       _carregando = false;
     });
@@ -122,7 +128,6 @@ class GeradorPageState extends State<GeradorPage> {
           displayField: 'acronimo',
           onSelect: () {
             definePesquisadoresDropboxController();
-            defineTrabalhosDropboxController();
           });
       _institutosDropboxController.selectedItems = [...institutosMapList];
       _institutosDropboxController.loading = false;
@@ -151,37 +156,18 @@ class GeradorPageState extends State<GeradorPage> {
     }
     setState(() {
       _pesquisadoresDropboxController = DropboxController(
-          items: pesquisadoresMapList,
-          displayField: 'nome',
-          onSelect: () => defineTrabalhosDropboxController());
+          items: pesquisadoresMapList, displayField: 'nome', onSelect: null);
       _pesquisadoresDropboxController.selectedItems = [...pesquisadoresMapList];
       _pesquisadoresDropboxController.loading = false;
     });
   }
 
-  void defineTrabalhosDropboxController() {
+  void defineTipoProducaoDropboxController() {
     setState(() {
-      _pesquisadoresDropboxController.loading = false;
-    });
-    var nomeReferenciaPesquisadoresSelecionados =
-        _pesquisadoresDropboxController.selectedItems.map(
-            (pesquisadorSelecionado) =>
-                pesquisadorSelecionado['nomeReferencia']);
-    List<Trabalho> trabalhosFiltrados = _trabalhos
-        .where((trabalho) => trabalho.nomes.any(
-            (nome) => nomeReferenciaPesquisadoresSelecionados.contains(nome)))
-        .toList();
-    List<Map<String, dynamic>> trabalhosMapList = [];
-    for (var trabalho in trabalhosFiltrados) {
-      trabalhosMapList.add(trabalho.toMap());
-    }
-    setState(() {
-      _trabalhosDropboxController = DropboxController(
-          items: trabalhosMapList,
-          displayField: 'titulo',
-          onSelect: () => null);
-      _trabalhosDropboxController.selectedItems = [...trabalhosMapList];
-      _trabalhosDropboxController.loading = false;
+      _tipoProducaoDropboxController = DropboxController(
+          items: _tipoProducao, displayField: 'label', onSelect: null);
+      _tipoProducaoDropboxController.selectedItems
+          .add(_tipoProducaoDropboxController.items.first);
     });
   }
 
@@ -195,6 +181,44 @@ class GeradorPageState extends State<GeradorPage> {
         _regrasPlotagem[2].fim.controller.text =
             ' >= ${_regrasPlotagem[2].inicio.controller.text}';
       });
+    }
+  }
+
+  void _validaConfiguracoesNP() {
+    if (NpRulesValidator(regrasPlotagem: _regrasPlotagem).validadeAll()) {
+      _solicitaGrafo();
+    } else {
+      QuickAlert.show(
+          context: context,
+          type: QuickAlertType.error,
+          confirmBtnText: 'Fechar',
+          title: 'Erro regras de plotagem',
+          text:
+              'Verifique se as regras de plotagem estão corretas:\nSem cores repetidas\nCom valores corretos');
+    }
+  }
+
+  Future<void> _solicitaGrafo() async {
+    setState(() {
+      _displayGrafo = false;
+    });
+    try {
+      var temp = await GraphController().gerarGrafo(GraphOptionsBuilder(
+              institutos: _institutosDropboxController.selectedItems,
+              pesquisadores: _pesquisadoresDropboxController.selectedItems,
+              regras: _regrasPlotagem,
+              tipoProducao:
+                  _tipoProducaoDropboxController.selectedItems.first['label'],
+              vertice: _verticeDropboxController.selectedItems.first['label'])
+          .buildOptions());
+      setState(() {
+        _grafo = temp;
+        _displayGrafo = true;
+        _pesquisadoresDropboxController.loading = false;
+        _institutosDropboxController.loading = false;
+      });
+    } catch (e) {
+      print(e);
     }
   }
 
@@ -220,7 +244,6 @@ class GeradorPageState extends State<GeradorPage> {
                     alignment: Alignment.topLeft,
                     child: ListView(
                       children: [
-                        const SizedBox(height: 30),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -242,15 +265,12 @@ class GeradorPageState extends State<GeradorPage> {
                                     label: 'Pesquisador',
                                     enableOptionAll: true,
                                   )),
-                            _trabalhosDropboxController.loading
-                                ? const Carregando()
-                                : Expanded(
-                                    child: Dropbox(
-                                    dropboxController:
-                                        _trabalhosDropboxController,
-                                    label: 'Trabalho',
-                                    enableOptionAll: true,
-                                  )),
+                            Expanded(
+                                child: Dropbox(
+                              dropboxController: _tipoProducaoDropboxController,
+                              label: 'Tipo Produção',
+                              enableOptionAll: false,
+                            )),
                             Expanded(
                                 child: Dropbox(
                                     dropboxController:
@@ -259,7 +279,7 @@ class GeradorPageState extends State<GeradorPage> {
                                     enableOptionAll: false)),
                           ],
                         ),
-                        const SizedBox(height: 150),
+                        const SizedBox(height: 10),
                         const Align(
                           alignment: Alignment.centerLeft,
                           child: Text('Regras de plotagem'),
@@ -342,9 +362,17 @@ class GeradorPageState extends State<GeradorPage> {
                                     ),
                                   ),
                                 ],
-                              ),
+                              )
                           ],
                         ),
+                        ElevatedButton(
+                            onPressed: _validaConfiguracoesNP,
+                            child: const Text('Grafo')),
+                        _displayGrafo
+                            ? Container(
+                                child: Image.memory(_grafo),
+                              )
+                            : SizedBox()
                       ],
                     ),
                   ),

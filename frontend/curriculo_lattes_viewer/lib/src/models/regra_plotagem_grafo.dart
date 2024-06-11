@@ -7,6 +7,10 @@ class RegraPlotagemGrafo {
 
   RegraPlotagemGrafo(
       {required this.cor, required this.inicio, required this.fim});
+
+  Map<String, dynamic> toMap() {
+    return {'cor': cor, 'inicio': inicio.getValue(), 'fim': fim.getValue()};
+  }
 }
 
 class NP {
@@ -16,6 +20,10 @@ class NP {
   NP({required this.controller, required this.readonly});
 
   int getValue() {
-    return int.parse(controller.text);
+    try {
+      return int.parse(controller.text);
+    } catch (e) {
+      return -1;
+    }
   }
 }

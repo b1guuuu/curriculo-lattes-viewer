@@ -1,3 +1,5 @@
+// ignore_for_file: no_logic_in_create_state
+
 import 'package:curriculo_lattes_viewer/src/controllers/dropbox_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:multiselect/multiselect.dart';

@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
-export "FLUTTER_ROOT=C:\Users\samar\Flutter\flutter"
-export "FLUTTER_APPLICATION_PATH=C:\Users\samar\OneDrive\Documentos\curriculo-lattes-viewer\frontend\curriculo_lattes_viewer"
+export "FLUTTER_ROOT=/opt/flutter"
+export "FLUTTER_APPLICATION_PATH=/home/igor/HD/Documents/FeMASS/Disciplinas/ds1/curriculo-lattes-viewer/frontend/curriculo_lattes_viewer"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"
