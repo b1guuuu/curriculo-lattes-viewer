@@ -1,5 +1,18 @@
+import 'package:curriculo_lattes_viewer/src/controllers/dropbox_controller.dart';
+import 'package:curriculo_lattes_viewer/src/controllers/intitutos_controller.dart';
+import 'package:curriculo_lattes_viewer/src/controllers/pesquisadores_controller.dart';
+import 'package:curriculo_lattes_viewer/src/controllers/trabalho_controller.dart';
+import 'package:curriculo_lattes_viewer/src/models/intituto.dart';
+import 'package:curriculo_lattes_viewer/src/models/pesquisador.dart';
+import 'package:curriculo_lattes_viewer/src/models/trabalho.dart';
+import 'package:curriculo_lattes_viewer/src/views/components/carregando.dart';
+import 'package:curriculo_lattes_viewer/src/views/components/dropbox.dart';
+import 'package:curriculo_lattes_viewer/src/views/components/grafico_producao_ano.dart';
+import 'package:curriculo_lattes_viewer/src/views/components/grafico_total_producao.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
+import 'package:curriculo_lattes_viewer/src/views/pages/gerador.dart';
 import 'package:flutter/material.dart';
+import 'package:quickalert/quickalert.dart';
 
 class InicioPage extends StatefulWidget {
   static const rota = '';
@@ -13,22 +26,335 @@ class InicioPage extends StatefulWidget {
 }
 
 class InicioPageState extends State<InicioPage> {
+  final _institutosController = InstitutosController();
+  final _pesquisadoresController = PesquisadoresController();
+  final _trabalhosController = TrabalhoController();
+  final _anoInicioTxtController = TextEditingController();
+  final _anoFimTxtController = TextEditingController();
+  final _tipoProducao = [
+    {'id': 1, 'label': 'Todos', 'value': '(LIVRO, ARTIGO)'},
+    {'id': 2, 'label': 'Livro', 'value': '(LIVRO)'},
+    {'id': 3, 'label': 'Artigo', 'value': '(ARTIGO)'},
+  ];
+  late List<Pesquisador> _pesquisadores;
+  late List<Instituto> _institutos;
+  late List<Trabalho> _trabalhos;
+  late DropboxController _institutosDropboxController;
+  late DropboxController _pesquisadoresDropboxController;
+  late DropboxController _tipoProducaoDropboxController;
+  bool _carregando = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _buscaDadosIniciais();
+  }
+
+  Future<void> _buscaDadosIniciais() async {
+    setState(() {
+      _carregando = true;
+    });
+
+    var pesquisadores = await _pesquisadoresController.listar();
+    var institutos = await _institutosController.listar();
+    var trabalhos = await _trabalhosController.listar();
+
+    setState(() {
+      _pesquisadores = pesquisadores;
+      _institutos = institutos;
+      _trabalhos = trabalhos;
+    });
+    _defineInstitutosDropboxController();
+    _definePesquisadoresDropboxController();
+    _defineTipoProducaoDropboxController();
+    setState(() {
+      _carregando = false;
+    });
+  }
+
+  void _defineInstitutosDropboxController() {
+    List<Map<String, dynamic>> institutosMapList = [];
+    for (var instituto in _institutos) {
+      institutosMapList.add(instituto.toMap());
+    }
+    setState(() {
+      _institutosDropboxController = DropboxController(
+          items: institutosMapList,
+          displayField: 'acronimo',
+          onSelect: () {
+            _definePesquisadoresDropboxController();
+          });
+      _institutosDropboxController.selectedItems = [...institutosMapList];
+      _institutosDropboxController.loading = false;
+    });
+  }
+
+  void _definePesquisadoresDropboxController() {
+    setState(() {
+      _institutosDropboxController.loading = false;
+    });
+    var idsInstitutosSelecionados = _institutosDropboxController.selectedItems
+        .map((institutoSelecionado) => institutoSelecionado['id']);
+    List<Pesquisador> pesquisadoresFiltrados;
+    if (idsInstitutosSelecionados.contains(-1)) {
+      pesquisadoresFiltrados = [..._pesquisadores];
+    } else {
+      pesquisadoresFiltrados = _pesquisadores
+          .where((pesquisador) =>
+              idsInstitutosSelecionados.contains(pesquisador.idInstituto))
+          .toList();
+    }
+
+    List<Map<String, dynamic>> pesquisadoresMapList = [];
+    for (var pesquisador in pesquisadoresFiltrados) {
+      pesquisadoresMapList.add(pesquisador.toMap());
+    }
+    setState(() {
+      _pesquisadoresDropboxController = DropboxController(
+          items: pesquisadoresMapList, displayField: 'nome', onSelect: null);
+      _pesquisadoresDropboxController.selectedItems = [...pesquisadoresMapList];
+      _pesquisadoresDropboxController.loading = false;
+    });
+  }
+
+  void _defineTipoProducaoDropboxController() {
+    setState(() {
+      _tipoProducaoDropboxController = DropboxController(
+          items: _tipoProducao, displayField: 'label', onSelect: null);
+      _tipoProducaoDropboxController.selectedItems
+          .add(_tipoProducaoDropboxController.items.first);
+    });
+  }
+
+  bool _validaFiltroAno(String anoInicioStr, String anoFimStr) {
+    int? anoInicioInt;
+    int? anoFimInt;
+    if (anoInicioStr.trim().isNotEmpty) {
+      try {
+        anoInicioInt = int.parse(anoInicioStr.trim());
+      } catch (e) {
+        return false;
+      }
+    }
+    if (anoFimStr.trim().isNotEmpty) {
+      try {
+        anoFimInt = int.parse(anoFimStr.trim());
+      } catch (e) {
+        return false;
+      }
+    }
+
+    if (anoInicioInt != null && anoFimInt != null) {
+      return anoInicioInt < anoFimInt;
+    }
+
+    return true;
+  }
+
+  void _filtraTrabalhos() {
+    if (_validaFiltroAno(_anoInicioTxtController.text.trim(),
+        _anoFimTxtController.text.trim())) {
+      setState(() {
+        _carregando = true;
+      });
+
+      int? anoInicio;
+      int? anoFim;
+
+      setState(() {
+        _carregando = false;
+      });
+    } else {
+      QuickAlert.show(
+          context: context,
+          type: QuickAlertType.error,
+          title: 'Ano(s) com valor(es) incorreto(s)',
+          text: 'Verifique o(s) valor(es) inserido(s);',
+          confirmBtnText: 'Fechar');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Início'),
-      ),
-      drawer: const Drawer(
-        child: Navegacao(),
-      ),
-      body: Container(
-        color: const Color.fromARGB(255, 208, 208, 208),
-        padding: const EdgeInsets.all(20.0),
-        child: const Center(
-          child: Text('Inicio'),
+        appBar: AppBar(
+          title: const Text('Início'),
         ),
-      ),
-    );
+        drawer: const Drawer(
+          child: Navegacao(),
+        ),
+        body: _carregando
+            ? const Center(
+                child: Carregando(),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: screenWidth / 3,
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(start: 6.0),
+                          child: Row(
+                            children: [
+                              const Text('Ano início: '),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              SizedBox(
+                                width: (screenWidth / 3) - 100,
+                                child: TextField(
+                                  decoration: const InputDecoration(
+                                      hintText: '2000',
+                                      border: OutlineInputBorder()),
+                                  controller: _anoInicioTxtController,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenWidth / 3,
+                        child: Padding(
+                          padding:
+                              const EdgeInsetsDirectional.only(start: 15.0),
+                          child: Row(
+                            children: [
+                              const Text('Ano fim: '),
+                              const SizedBox(
+                                width: 10.0,
+                              ),
+                              SizedBox(
+                                width: (screenWidth / 3) - 100,
+                                child: TextField(
+                                  decoration: const InputDecoration(
+                                      hintText: '2020',
+                                      border: OutlineInputBorder()),
+                                  controller: _anoFimTxtController,
+                                  keyboardType: TextInputType.number,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenWidth / 3,
+                        child: Padding(
+                          padding: const EdgeInsetsDirectional.only(
+                              start: 20.0, end: 20.0),
+                          child: FilledButton(
+                              onPressed: () => _filtraTrabalhos(),
+                              child: const Text('Aplicar')),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: screenWidth / 3,
+                        child: _institutosDropboxController.loading
+                            ? const Carregando()
+                            : Dropbox(
+                                dropboxController: _institutosDropboxController,
+                                label: 'Instituto',
+                                enableOptionAll: true),
+                      ),
+                      SizedBox(
+                        width: screenWidth / 3,
+                        child: _pesquisadoresDropboxController.loading
+                            ? const Carregando()
+                            : Dropbox(
+                                dropboxController:
+                                    _pesquisadoresDropboxController,
+                                label: 'Pesquisador',
+                                enableOptionAll: true),
+                      ),
+                      SizedBox(
+                        width: screenWidth / 3,
+                        child: Dropbox(
+                            dropboxController: _tipoProducaoDropboxController,
+                            label: 'Tipo Prod.',
+                            enableOptionAll: false),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: screenWidth,
+                    height: 360,
+                    child: GraficoProducaoAno(trabalhos: _trabalhos),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: screenWidth / 3,
+                        height: 400,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Produção'),
+                            GraficoTotalProducao(trabalhos: _trabalhos)
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenWidth * (2 / 9),
+                        height: 400,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Institutos'),
+                            Text(_institutos.length.toString())
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenWidth * (2 / 9),
+                        height: 400,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Pesquisadores'),
+                            Text(_pesquisadores.length.toString())
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: screenWidth * (2 / 9),
+                        height: 400,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text('Grafos'),
+                            IconButton(
+                              onPressed: () => Navigator.of(context)
+                                  .pushNamed(GeradorPage.rota),
+                              icon: const Icon(
+                                Icons.stacked_line_chart_rounded,
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                ],
+              ));
   }
 }
