@@ -24,6 +24,21 @@ class TrabalhoDao:
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
+    def get_pesquisadores_id(self, id_trabalho=None):
+        self.cursor.execute(f'SELECT DISTINCT(ac.idPesquisador) FROM autor_cadastrado ac WHERE ac.idTrabalho = {id_trabalho}')
+        resultado = self.cursor.fetchall()
+        return resultado[0]
+
+    def get_institutos_id(self, id_trabalho=None):
+        sql = f"""
+        SELECT DISTINCT (p.idInstituto) FROM pesquisador p 
+        INNER JOIN autor_cadastrado ac ON ac.idPesquisador = p.id 
+        WHERE ac.idTrabalho = {id_trabalho};
+        """
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return resultado[0]
+
     def get_by_columns(self, titulo=None, ano=None, tipo=None):
         sql = 'SELECT * FROM trabalho WHERE titulo=%s AND ano=%s AND tipo=%s'
         val = (titulo, ano, tipo)

@@ -14,6 +14,21 @@ def get_all():
     trabalhos = trabalho_dao.get_all()
     return json.dumps([ob.__dict__ for ob in trabalhos])
 
+@trabalho_blueprint.route('/listar/relacoes', methods=['GET'])
+@cross_origin()
+def get_all_relacoes():
+    trabalhos = trabalho_dao.get_all()
+    resultado = []
+    for trabalho in trabalhos:
+        institutos = trabalho_dao.get_institutos_id(trabalho.id)
+        pesquisadores = trabalho_dao.get_pesquisadores_id(trabalho.id)
+        trabalho_dict = trabalho.__dict__
+        trabalho_dict['institutos'] = institutos
+        trabalho_dict['pesquisadores'] = pesquisadores
+        resultado.append(trabalho_dict)
+
+    return json.dumps(resultado)
+
 @trabalho_blueprint.route('/filtrar', methods=['GET'])
 @cross_origin()
 def get_all_citacoes():
