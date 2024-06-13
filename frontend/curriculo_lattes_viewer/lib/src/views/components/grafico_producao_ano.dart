@@ -43,6 +43,10 @@ class GraficoProducaoAnoState extends State<GraficoProducaoAno> {
       }
       contadorTrabalhos++;
     }
+    data.add(BarChartGroupData(
+        x: ultimoAno,
+        showingTooltipIndicators: showingTooltip == ultimoAno ? [0] : [],
+        barRods: [BarChartRodData(toY: contadorTrabalhos.toDouble())]));
 
     return data;
   }
@@ -58,10 +62,10 @@ class GraficoProducaoAnoState extends State<GraficoProducaoAno> {
             child: BarChart(
               BarChartData(
                 titlesData: FlTitlesData(
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false)),
                     bottomTitles: AxisTitles(
                         sideTitles: SideTitles(
                       showTitles: true,

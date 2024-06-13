@@ -4,20 +4,26 @@ class Trabalho {
   final int ano;
   final String tipo;
   final List<dynamic> nomes;
+  final List<dynamic>? institutos;
+  final List<dynamic>? pesquisadores;
 
   Trabalho(
       {required this.id,
       required this.titulo,
       required this.ano,
       required this.tipo,
-      required this.nomes});
+      required this.nomes,
+      required this.institutos,
+      required this.pesquisadores});
 
   Trabalho.fromJson(dynamic json)
       : id = json['id'],
         titulo = json['titulo'],
         ano = json['ano'],
         tipo = json['tipo'],
-        nomes = json['nomes'];
+        nomes = json['nomes'],
+        institutos = json['institutos'],
+        pesquisadores = json['pesquisadores'];
 
   Map<String, dynamic> toMap() {
     return {
@@ -25,7 +31,9 @@ class Trabalho {
       "titulo": titulo,
       "ano": ano,
       "tipo": tipo,
-      "nomes": nomes.toString()
+      "nomes": nomes.toString(),
+      "pesquisadores": pesquisadores.toString(),
+      "institutos": institutos.toString()
     };
   }
 

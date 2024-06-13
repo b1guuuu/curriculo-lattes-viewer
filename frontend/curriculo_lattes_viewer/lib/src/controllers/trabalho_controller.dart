@@ -17,6 +17,16 @@ class TrabalhoController {
     return trabalhos;
   }
 
+  Future<List<Trabalho>> listarRelacoes() async {
+    Response resposta = await http.get(Uri.parse('$_baseURL/listar/relacoes'));
+    var respostaJson = jsonDecode(resposta.body);
+    List<Trabalho> trabalhos = [];
+    for (var trabalhoJson in respostaJson) {
+      trabalhos.add(Trabalho.fromJson(trabalhoJson));
+    }
+    return trabalhos;
+  }
+
   Future<List<Trabalho>> filtrar(
       int? anoInicio,
       int? anoFim,

@@ -39,6 +39,7 @@ class InicioPageState extends State<InicioPage> {
   late List<Pesquisador> _pesquisadores;
   late List<Instituto> _institutos;
   late List<Trabalho> _trabalhos;
+  late List<Trabalho> _trabalhosFiltrados;
   late DropboxController _institutosDropboxController;
   late DropboxController _pesquisadoresDropboxController;
   late DropboxController _tipoProducaoDropboxController;
@@ -57,12 +58,13 @@ class InicioPageState extends State<InicioPage> {
 
     var pesquisadores = await _pesquisadoresController.listar();
     var institutos = await _institutosController.listar();
-    var trabalhos = await _trabalhosController.listar();
+    var trabalhos = await _trabalhosController.listarRelacoes();
 
     setState(() {
       _pesquisadores = pesquisadores;
       _institutos = institutos;
       _trabalhos = trabalhos;
+      _trabalhosFiltrados = trabalhos;
     });
     _defineInstitutosDropboxController();
     _definePesquisadoresDropboxController();
@@ -145,7 +147,7 @@ class InicioPageState extends State<InicioPage> {
     }
 
     if (anoInicioInt != null && anoFimInt != null) {
-      return anoInicioInt < anoFimInt;
+      return anoInicioInt <= anoFimInt;
     }
 
     return true;
@@ -154,15 +156,26 @@ class InicioPageState extends State<InicioPage> {
   void _filtraTrabalhos() {
     if (_validaFiltroAno(_anoInicioTxtController.text.trim(),
         _anoFimTxtController.text.trim())) {
-      setState(() {
-        _carregando = true;
-      });
+      int anoInicio = 1988;
+      int anoFim = 2024;
+      if (_anoInicioTxtController.text.trim().isNotEmpty) {
+        anoInicio = int.parse(_anoInicioTxtController.text.trim());
+      }
+      if (_anoFimTxtController.text.trim().isNotEmpty) {
+        anoFim = int.parse(_anoFimTxtController.text.trim());
+      }
+      var trabalhosFiltrados = _filtroAno(_trabalhos, anoInicio, anoFim);
+      print(trabalhosFiltrados);
+      trabalhosFiltrados = _filtroInstituto(trabalhosFiltrados);
+      print(trabalhosFiltrados);
+      trabalhosFiltrados = _filtroPesquisador(trabalhosFiltrados);
+      print(trabalhosFiltrados);
+      trabalhosFiltrados = _filtroTipoProducao(trabalhosFiltrados);
+      print(trabalhosFiltrados);
 
-      int? anoInicio;
-      int? anoFim;
-
       setState(() {
-        _carregando = false;
+        _trabalhosFiltrados = trabalhosFiltrados;
+        _pesquisadoresDropboxController.loading = false;
       });
     } else {
       QuickAlert.show(
@@ -172,6 +185,54 @@ class InicioPageState extends State<InicioPage> {
           text: 'Verifique o(s) valor(es) inserido(s);',
           confirmBtnText: 'Fechar');
     }
+  }
+
+  List<Trabalho> _filtroAno(
+      List<Trabalho> trabalhos, int anoInicio, int anoFim) {
+    return trabalhos
+        .where(
+            (trabalho) => trabalho.ano >= anoInicio && trabalho.ano <= anoFim)
+        .toList();
+  }
+
+  List<Trabalho> _filtroInstituto(List<Trabalho> trabalhos) {
+    if (_institutosDropboxController.optionAllSelected) {
+      return trabalhos;
+    } else {
+      var idsInstitutosSelecionados = _institutosDropboxController.selectedItems
+          .map((institutoSelecionado) => institutoSelecionado['id']);
+      return trabalhos
+          .where((trabalho) => trabalho.institutos!
+              .toSet()
+              .intersection(idsInstitutosSelecionados.toSet())
+              .isNotEmpty)
+          .toList();
+    }
+  }
+
+  List<Trabalho> _filtroPesquisador(List<Trabalho> trabalhos) {
+    if (_pesquisadoresDropboxController.optionAllSelected) {
+      return trabalhos;
+    } else {
+      var idsPesquisadoresSelecionados = _pesquisadoresDropboxController
+          .selectedItems
+          .map((pesquisador) => pesquisador['id']);
+      return trabalhos
+          .where((trabalho) => trabalho.pesquisadores!
+              .toSet()
+              .intersection(idsPesquisadoresSelecionados.toSet())
+              .isNotEmpty)
+          .toList();
+    }
+  }
+
+  List<Trabalho> _filtroTipoProducao(List<Trabalho> trabalhos) {
+    return trabalhos
+        .where((trabalho) => _tipoProducaoDropboxController
+            .selectedItems.first['value']
+            .toString()
+            .contains(trabalho.tipo))
+        .toList();
   }
 
   @override
@@ -292,7 +353,7 @@ class InicioPageState extends State<InicioPage> {
                   SizedBox(
                     width: screenWidth,
                     height: 360,
-                    child: GraficoProducaoAno(trabalhos: _trabalhos),
+                    child: GraficoProducaoAno(trabalhos: _trabalhosFiltrados),
                   ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
