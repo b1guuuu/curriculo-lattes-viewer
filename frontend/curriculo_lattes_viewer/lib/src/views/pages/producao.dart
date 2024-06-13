@@ -30,6 +30,7 @@ class ProducaoPageState extends State<ProducaoPage> {
   List<Instituto> _institutos = [];
   List<Pesquisador> _pesquisadores = [];
   bool _carregando = true;
+  int _contador = 0;
 
   @override
   void initState() {
@@ -62,7 +63,7 @@ class ProducaoPageState extends State<ProducaoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: const Text('Itens de produção'),
+          title: Text('${_contador} Itens de produção'),
         ),
         drawer: const Drawer(
           child: Navegacao(),
@@ -119,6 +120,9 @@ class ProducaoPageState extends State<ProducaoPage> {
                                     filterModel['tipo'] == null
                                         ? null
                                         : filterModel['tipo']);
+                            setState(() {
+                              _contador = totalTrabalhos;
+                            });
                             var nextPageToken =
                                 int.parse(pageToken ?? '0') + pageSize;
                             return (
