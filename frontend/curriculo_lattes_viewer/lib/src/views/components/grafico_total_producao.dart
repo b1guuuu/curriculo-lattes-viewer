@@ -66,7 +66,7 @@ class GraficoTotalProducaoState extends State<GraficoTotalProducao> {
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
-      aspectRatio: 1.3,
+      aspectRatio: 4,
       child: Row(
         children: <Widget>[
           const SizedBox(
@@ -74,7 +74,7 @@ class GraficoTotalProducaoState extends State<GraficoTotalProducao> {
           ),
           Expanded(
             child: AspectRatio(
-              aspectRatio: 1,
+              aspectRatio: 1.1,
               child: PieChart(
                 PieChartData(
                   pieTouchData: PieTouchData(

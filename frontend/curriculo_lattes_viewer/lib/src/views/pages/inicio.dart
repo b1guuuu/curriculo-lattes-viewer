@@ -361,7 +361,7 @@ class InicioPageState extends State<InicioPage> {
                     children: [
                       SizedBox(
                         width: screenWidth / 3,
-                        height: 400,
+                        height: 200,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -373,7 +373,7 @@ class InicioPageState extends State<InicioPage> {
                       ),
                       SizedBox(
                         width: screenWidth * (2 / 9),
-                        height: 400,
+                        height: 150,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -385,7 +385,7 @@ class InicioPageState extends State<InicioPage> {
                       ),
                       SizedBox(
                         width: screenWidth * (2 / 9),
-                        height: 400,
+                        height: 150,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -397,7 +397,7 @@ class InicioPageState extends State<InicioPage> {
                       ),
                       SizedBox(
                         width: screenWidth * (2 / 9),
-                        height: 400,
+                        height: 150,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           mainAxisAlignment: MainAxisAlignment.center,

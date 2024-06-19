@@ -39,7 +39,8 @@ class App extends StatelessWidget {
         InstitutosPage.rota: (context) => const InstitutosPage(),
         PesquisadoresPage.rota: (context) => const PesquisadoresPage(),
         ProducaoPage.rota: (context) => const ProducaoPage(),
-        GeradorPage.rota: (context) => const GeradorPage()
+        GeradorPage.rota: (context) => const GeradorPage(),
+        InicioPage.rota: (context) => const InicioPage()
       },
     );
   }
