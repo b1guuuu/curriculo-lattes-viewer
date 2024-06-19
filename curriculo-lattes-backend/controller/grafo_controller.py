@@ -21,16 +21,16 @@ def gerarGrafo():
     graph_manager = GraphManager()
 
     if options['vertice'] == 'Instituto':
-        graph_manager.gerar_grafo_vertice_instituto(
-            ids=options['institutos'],
+        graph_manager.gerar_grafo_sem_repeticoes_vertice_instituto(
+            institutos=options['institutos'],
             pesquisadores=options['pesquisadores'],
             regras=options['regras'],
             tipo_producao=options['tipoProducao'].upper()
         )
     else:
-        graph_manager.gerar_grafo_vertice_pesquisador(
+        graph_manager.gerar_grafo_sem_repeticoes_vertice_pesquisador(
             institutos=options['institutos'],
-            ids=options['pesquisadores'],
+            pesquisadores=options['pesquisadores'],
             regras=options['regras'],
             tipo_producao=options['tipoProducao'].upper()
         )

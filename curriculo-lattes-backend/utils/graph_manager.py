@@ -120,3 +120,112 @@ class GraphManager:
         nx._clear_cache(graph)
         plt.clf()
             
+    def gerar_grafo_sem_repeticoes_vertice_instituto(self, institutos=[], pesquisadores=[], regras=[], tipo_producao=''):
+        graph = nx.Graph()
+        graph_dao = GraphDao()
+        trabalho_dao = TrabalhoDao()
+        trabalhos = trabalho_dao.get_by_pesquisadores_institutos_tipo(pesquisadores=pesquisadores, institutos=institutos, tipo_producao=tipo_producao)
+
+        for trabalho in trabalhos:
+            relacoes = graph_dao.get_trabalho_relacoes_distinct_instituto(trabalho.id)
+            
+            for i in range(len(relacoes)):
+                relacao_i = relacoes[i]
+                if relacao_i['instituto_id'] in institutos:
+                    if relacao_i['instituto_acronimo'] not in graph.nodes:
+                        graph.add_node(relacao_i['instituto_acronimo'])
+                    if i+1 < len(relacoes):
+                        for j in range(i+1, len(relacoes)):
+                            relacao_j = relacoes[j]
+                            if relacao_i['instituto_acronimo'] != relacao_j['instituto_acronimo']:
+                                if(relacao_i['instituto_acronimo'], relacao_j['instituto_acronimo']) in graph.edges:
+                                    edge_att_dic = graph.get_edge_data(relacao_i['instituto_acronimo'], relacao_j['instituto_acronimo'])
+                                    graph.remove_edge(relacao_i['instituto_acronimo'], relacao_j['instituto_acronimo'])
+                                    graph.add_edge(relacao_i['instituto_acronimo'], relacao_j['instituto_acronimo'], label=edge_att_dic['label']+1, cor=self.get_edge_color(regras=regras, valor=edge_att_dic['label']+1))
+                                else:
+                                    graph.add_edge(relacao_i['instituto_acronimo'], relacao_j['instituto_acronimo'], label=1, cor=self.get_edge_color(regras=regras, valor=1))
+        cores = nx.get_edge_attributes(graph, 'cor').values()
+        weights = nx.get_edge_attributes(graph, 'label').values()
+
+        pos = nx.circular_layout(graph)
+        plt.figure(figsize=[16,10])
+        nx.draw(
+            graph,
+            pos,
+            edge_color=cores,
+            width=list(weights),
+            node_size=1000,
+            node_color='pink',
+            alpha=0.9,
+            labels={node: node for node in graph.nodes()},
+        )
+        labels = {}
+        for edge in graph.edges():
+            att_dic = graph.get_edge_data(edge[0], edge[1])
+            labels[edge] = att_dic['label']
+        
+        nx.draw_networkx_edge_labels(
+            graph,
+            pos,
+            edge_labels={edge: labels[edge] for edge in graph.edges()}
+        )
+        plt.axis('off')
+        plt.savefig('Graph.png', format='PNG', dpi=200)
+        graph.clear()
+        nx._clear_cache(graph)
+        plt.clf()
+
+    def gerar_grafo_sem_repeticoes_vertice_pesquisador(self, institutos=[], pesquisadores=[], regras=[], tipo_producao=''):
+        graph = nx.Graph()
+        graph_dao = GraphDao()
+        trabalho_dao = TrabalhoDao()
+        trabalhos = trabalho_dao.get_by_pesquisadores_institutos_tipo(pesquisadores=pesquisadores, institutos=institutos, tipo_producao=tipo_producao)
+
+        for trabalho in trabalhos:
+            relacoes = graph_dao.get_trabalho_relacoes_distinct_pesquisador(trabalho.id)
+            
+            for i in range(len(relacoes)):
+                relacao_i = relacoes[i]
+                if relacao_i['pesquisador_id'] in pesquisadores:
+                    if relacao_i['pesquisador_nome'] not in graph.nodes:
+                        graph.add_node(relacao_i['pesquisador_nome'])
+                    if i+1 < len(relacoes):
+                        for j in range(i+1, len(relacoes)):
+                            relacao_j = relacoes[j]
+                            if relacao_i['pesquisador_nome'] != relacao_j['pesquisador_nome']:
+                                if(relacao_i['pesquisador_nome'], relacao_j['pesquisador_nome']) in graph.edges:
+                                    edge_att_dic = graph.get_edge_data(relacao_i['pesquisador_nome'], relacao_j['pesquisador_nome'])
+                                    graph.remove_edge(relacao_i['pesquisador_nome'], relacao_j['pesquisador_nome'])
+                                    graph.add_edge(relacao_i['pesquisador_nome'], relacao_j['pesquisador_nome'], label=edge_att_dic['label']+1, cor=self.get_edge_color(regras=regras, valor=edge_att_dic['label']+1))
+                                else:
+                                    graph.add_edge(relacao_i['pesquisador_nome'], relacao_j['pesquisador_nome'], label=1, cor=self.get_edge_color(regras=regras, valor=1))
+        cores = nx.get_edge_attributes(graph, 'cor').values()
+        weights = nx.get_edge_attributes(graph, 'label').values()
+
+        pos = nx.circular_layout(graph)
+        plt.figure(figsize=[16,10])
+        nx.draw(
+            graph,
+            pos,
+            edge_color=cores,
+            width=list(weights),
+            node_size=1000,
+            node_color='pink',
+            alpha=0.9,
+            labels={node: node for node in graph.nodes()},
+        )
+        labels = {}
+        for edge in graph.edges():
+            att_dic = graph.get_edge_data(edge[0], edge[1])
+            labels[edge] = att_dic['label']
+        
+        nx.draw_networkx_edge_labels(
+            graph,
+            pos,
+            edge_labels={edge: labels[edge] for edge in graph.edges()}
+        )
+        plt.axis('off')
+        plt.savefig('Graph.png', format='PNG', dpi=200)
+        graph.clear()
+        nx._clear_cache(graph)
+        plt.clf()

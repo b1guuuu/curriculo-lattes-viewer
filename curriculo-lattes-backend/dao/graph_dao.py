@@ -74,3 +74,38 @@ class GraphDao:
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return resultado
+
+    def get_trabalho_relacoes(self, trabalho_id):
+        sql = f"""
+        SELECT p.nome, i.acronimo, p.id, i.id, ac.idTrabalho, ac.ordem FROM autor_cadastrado ac 
+        INNER JOIN pesquisador p ON ac.idPesquisador = p.id 
+        INNER JOIN instituto i ON p.idInstituto = i.id 
+        WHERE ac.idTrabalho = {trabalho_id};
+        """
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return [{"pesquisador_nome":linha[0], "instituto_acronimo": linha[1], "pesquisador_id": linha[2], "instituto_id": linha[3], "trabalho_id": linha[4], "trabalho_ordem": linha[5]} for linha in resultado]
+
+
+    def get_trabalho_relacoes_distinct_instituto(self, trabalho_id):
+        sql = f"""
+        SELECT DISTINCT(i.id), p.nome, i.acronimo, p.id, ac.idTrabalho, ac.ordem FROM autor_cadastrado ac 
+        INNER JOIN pesquisador p ON ac.idPesquisador = p.id 
+        INNER JOIN instituto i ON p.idInstituto = i.id 
+        WHERE ac.idTrabalho = {trabalho_id};
+        """
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return [{"pesquisador_nome":linha[1], "instituto_acronimo": linha[2], "pesquisador_id": linha[3], "instituto_id": linha[0], "trabalho_id": linha[4], "trabalho_ordem": linha[5]} for linha in resultado]
+
+    def get_trabalho_relacoes_distinct_pesquisador(self, trabalho_id):
+        sql = f"""
+        SELECT DISTINCT(p.id), p.nome, i.acronimo, i.id, ac.idTrabalho, ac.ordem FROM autor_cadastrado ac 
+        INNER JOIN pesquisador p ON ac.idPesquisador = p.id 
+        INNER JOIN instituto i ON p.idInstituto = i.id 
+        WHERE ac.idTrabalho = {trabalho_id};
+        """
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return [{"pesquisador_nome":linha[1], "instituto_acronimo": linha[2], "pesquisador_id": linha[0], "instituto_id": linha[3], "trabalho_id": linha[4], "trabalho_ordem": linha[5]} for linha in resultado]
+

@@ -63,7 +63,7 @@ class ProducaoPageState extends State<ProducaoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('${_contador} Itens de produção'),
+          title: Text('$_contador Itens de produção'),
         ),
         drawer: const Drawer(
           child: Navegacao(),

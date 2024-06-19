@@ -24,6 +24,29 @@ class TrabalhoDao:
         resultado = self.cursor.fetchall()
         return self.mysql_result_to_object_list(resultado)
 
+    def get_by_pesquisadores_institutos_tipo(self, pesquisadores=[], institutos=[], tipo_producao=''):
+        pesquisadores_ids = ','.join(f"'{pesquisador}'" for pesquisador in pesquisadores)
+        institutos_ids = ','.join(str(instituto) for instituto in institutos)
+        tipo_producao_filter = ''
+        if tipo_producao == 'TODOS':
+            tipo_producao_filter = "('ARTIGO', 'LIVRO')"
+        else:
+            tipo_producao_filter = f"('{tipo_producao}')"
+
+        sql = f"""
+            SELECT DISTINCT(t.id), t.titulo, t.ano, t.tipo FROM trabalho t
+            INNER JOIN autor_cadastrado ac ON ac.idTrabalho = t.id 
+            INNER JOIN pesquisador p ON ac.idPesquisador = p.id 
+            WHERE t.tipo IN {tipo_producao_filter}
+                AND p.id IN ({pesquisadores_ids})
+                AND p.idInstituto  IN ({institutos_ids})
+        """
+
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return self.mysql_result_to_object_list(resultado)
+    
+
     def get_pesquisadores_id(self, id_trabalho=None):
         self.cursor.execute(f'SELECT DISTINCT(ac.idPesquisador) FROM autor_cadastrado ac WHERE ac.idTrabalho = {id_trabalho}')
         resultado = self.cursor.fetchall()
