@@ -38,9 +38,22 @@ class App extends StatelessWidget {
       routes: {
         InstitutosPage.rota: (context) => const InstitutosPage(),
         PesquisadoresPage.rota: (context) => const PesquisadoresPage(),
-        ProducaoPage.rota: (context) => const ProducaoPage(),
         GeradorPage.rota: (context) => const GeradorPage(),
         InicioPage.rota: (context) => const InicioPage()
+      },
+      onGenerateRoute: (settings) {
+        if (settings.name == ProducaoPage.rota) {
+          var filtros = settings.arguments as Map<String, dynamic>?;
+          return MaterialPageRoute(builder: (context) {
+            return ProducaoPage(
+              filtros: filtros,
+            );
+          });
+        }
+
+        return MaterialPageRoute(builder: (context) {
+          return const InicioPage();
+        });
       },
     );
   }

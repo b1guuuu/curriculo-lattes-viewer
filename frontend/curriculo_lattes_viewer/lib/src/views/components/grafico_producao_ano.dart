@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 
 class GraficoProducaoAno extends StatefulWidget {
   final List<Trabalho> trabalhos;
+  final Function(int) onTap;
 
-  const GraficoProducaoAno({super.key, required this.trabalhos});
+  const GraficoProducaoAno(
+      {super.key, required this.trabalhos, required this.onTap});
 
   @override
   State<GraficoProducaoAno> createState() {
@@ -79,15 +81,8 @@ class GraficoProducaoAnoState extends State<GraficoProducaoAno> {
                       if (response != null &&
                           response.spot != null &&
                           event is FlTapUpEvent) {
-                        setState(() {
-                          final x = response.spot!.touchedBarGroup.x;
-                          final isShowing = showingTooltip == x;
-                          if (isShowing) {
-                            showingTooltip = -1;
-                          } else {
-                            showingTooltip = x;
-                          }
-                        });
+                        final x = response.spot!.touchedBarGroup.x;
+                        widget.onTap(x);
                       }
                     },
                     mouseCursorResolver: (event, response) {

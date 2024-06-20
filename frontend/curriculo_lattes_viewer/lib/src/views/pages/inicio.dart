@@ -11,6 +11,7 @@ import 'package:curriculo_lattes_viewer/src/views/components/grafico_producao_an
 import 'package:curriculo_lattes_viewer/src/views/components/grafico_total_producao.dart';
 import 'package:curriculo_lattes_viewer/src/views/components/navegacao.dart';
 import 'package:curriculo_lattes_viewer/src/views/pages/gerador.dart';
+import 'package:curriculo_lattes_viewer/src/views/pages/producao.dart';
 import 'package:flutter/material.dart';
 import 'package:quickalert/quickalert.dart';
 
@@ -165,14 +166,9 @@ class InicioPageState extends State<InicioPage> {
         anoFim = int.parse(_anoFimTxtController.text.trim());
       }
       var trabalhosFiltrados = _filtroAno(_trabalhos, anoInicio, anoFim);
-      print(trabalhosFiltrados);
       trabalhosFiltrados = _filtroInstituto(trabalhosFiltrados);
-      print(trabalhosFiltrados);
       trabalhosFiltrados = _filtroPesquisador(trabalhosFiltrados);
-      print(trabalhosFiltrados);
       trabalhosFiltrados = _filtroTipoProducao(trabalhosFiltrados);
-      print(trabalhosFiltrados);
-
       setState(() {
         _trabalhosFiltrados = trabalhosFiltrados;
         _pesquisadoresDropboxController.loading = false;
@@ -233,6 +229,32 @@ class InicioPageState extends State<InicioPage> {
             .toString()
             .contains(trabalho.tipo))
         .toList();
+  }
+
+  void irParaTelaProducao(int ano) {
+    int filtroAnoInicio = ano;
+    int filtroAnoFim = ano;
+    List<int> filtroInstitutos = _institutosDropboxController.selectedItems
+        .map((instituto) => instituto['id'])
+        .cast<int>()
+        .toList();
+    List<String> filtroPesquisadores = _pesquisadoresDropboxController
+        .selectedItems
+        .where((pesquisador) => pesquisador['id'] != -1)
+        .map((pesquisador) => pesquisador['id'])
+        .cast<String>()
+        .toList();
+    int filtroTipo = _tipoProducaoDropboxController.selectedItems.first['id'];
+
+    print('irParaTelaProducao');
+
+    Navigator.of(context).pushNamed(ProducaoPage.rota, arguments: {
+      '_filtroAnoInicio': filtroAnoInicio,
+      '_filtroAnoFim': filtroAnoFim,
+      '_filtroInstitutos': filtroInstitutos,
+      '_filtroPesquisadores': filtroPesquisadores,
+      '_filtroTipo': filtroTipo
+    });
   }
 
   @override
@@ -353,7 +375,10 @@ class InicioPageState extends State<InicioPage> {
                   SizedBox(
                     width: screenWidth,
                     height: 360,
-                    child: GraficoProducaoAno(trabalhos: _trabalhosFiltrados),
+                    child: GraficoProducaoAno(
+                      trabalhos: _trabalhosFiltrados,
+                      onTap: (p0) => irParaTelaProducao(p0),
+                    ),
                   ),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
