@@ -146,6 +146,89 @@ class TrabalhoDao:
 
      # FILTER
     
+
+    def filter_atualizado(self, ano_inicio=None, ano_fim=None, institutos=None, pesquisadores=None, tipo=None, orderBy=None, sort=None, posicaoInicial=1, quantidadeItens=100):
+        sql = 'SELECT trabalho.* FROM trabalho '
+
+        filtros = []
+        if ano_inicio != 'null':
+            filtros.append('trabalho.ano >= ' + str(ano_inicio))
+        if ano_fim != 'null':
+            filtros.append('trabalho.ano <= ' + str(ano_fim))
+        if institutos != 'null':
+            sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+            sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
+            filtros.append(f"pesquisador.idInstituto IN ({institutos})")
+        if pesquisadores != 'null':
+            if 'INNER JOIN' not in sql:
+                sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+                sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
+            filtros.append(f"pesquisador.id IN ({pesquisadores})")
+        if tipo != 'null':
+            filtros.append(f"trabalho.tipo IN {tipo}")
+
+        if len(filtros) > 0:
+            sql += 'WHERE ' + ' AND '.join(filtros) + ' '
+        if orderBy != 'null':
+            sql += "ORDER BY " + orderBy + " " + sort + " "
+
+        sql+='LIMIT ' + posicaoInicial + ', ' + quantidadeItens + ';'
+        print('\n')
+        print(sql)
+        print('\n')
+        
+        self.cursor.execute(sql)
+        trabalhos = self.cursor.fetchall()
+        ids_str = '('
+
+        for linha in trabalhos:
+            ids_str += str(linha[0]) + ','
+        ids_str += str(linha[0]) + ')'
+        sql = f"""
+            SELECT
+                autor_nao_cadastrado.idTrabalho,
+                autor_nao_cadastrado.nomeReferencia
+            FROM
+                autor_nao_cadastrado
+            WHERE
+                autor_nao_cadastrado.idTrabalho in {ids_str}
+            UNION
+            SELECT
+                autor_cadastrado.idTrabalho,
+                pesquisador.nomeReferencia
+            FROM
+                autor_cadastrado
+            INNER JOIN pesquisador ON
+                autor_cadastrado.idPesquisador = pesquisador.id
+            WHERE
+                autor_cadastrado.idTrabalho in {ids_str};
+        """
+        
+        print('\n')
+        print(sql)
+        print('\n')
+        self.cursor.execute(sql)
+        nomes = self.cursor.fetchall()
+        trabalhos_com_nomes = []
+
+        for linha in trabalhos:
+            trabalho = {
+                    'id': linha[0],
+                    'titulo': linha[1],
+                    'ano': linha[2],
+                    'tipo': linha[3],
+                    'nomes': []
+                }
+            for nome in nomes:
+                if nome[0] == trabalho['id']:
+                    trabalho['nomes'].append(nome[1])
+            trabalhos_com_nomes.append(trabalho)
+
+        return trabalhos_com_nomes
+
+     # FILTER
+    
+
     # COUNT
     def count(self, ano_inicio=None, ano_fim=None, id_instituto=None, id_pesquisador=None, tipo=None):
         sql = 'SELECT COUNT(trabalho.id) FROM trabalho ' 
@@ -170,6 +253,38 @@ class TrabalhoDao:
         if len(filtros) > 0:
             sql += 'WHERE ' + ' AND '.join(filtros) + ' '
 
+        self.cursor.execute(sql)
+        resultado = self.cursor.fetchall()
+        return resultado[0][0]
+
+
+    # COUNT
+    def count_atualizado(self, ano_inicio=None, ano_fim=None, institutos=None, pesquisadores=None, tipo=None):
+        sql = 'SELECT COUNT(trabalho.id) FROM trabalho ' 
+
+        filtros = []
+        if ano_inicio != 'null':
+            filtros.append('trabalho.ano >= ' + str(ano_inicio))
+        if ano_fim != 'null':
+            filtros.append('trabalho.ano <= ' + str(ano_fim))
+        if institutos != 'null':
+            sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+            sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
+            filtros.append(f"pesquisador.idInstituto IN ({institutos})")
+        if pesquisadores != 'null':
+            if 'INNER JOIN' not in sql:
+                sql += 'INNER JOIN autor_cadastrado ON autor_cadastrado.idTrabalho=trabalho.id '
+                sql += 'INNER JOIN pesquisador ON autor_cadastrado.idPesquisador=pesquisador.id '
+            filtros.append(f"pesquisador.id IN ({pesquisadores})")
+        if tipo != 'null':
+            filtros.append(f"trabalho.tipo IN {tipo}")
+
+        if len(filtros) > 0:
+            sql += 'WHERE ' + ' AND '.join(filtros) + ' '
+
+        print('\n')
+        print(sql)
+        print('\n')
         self.cursor.execute(sql)
         resultado = self.cursor.fetchall()
         return resultado[0][0]

@@ -49,6 +49,26 @@ def get_all_citacoes():
         print(e)
         return json.dumps([])
 
+@trabalho_blueprint.route('/filtrar/atualizado', methods=['GET'])
+@cross_origin()
+def get_all_citacoes_atualizado():
+    try:
+        ano_inicio = request.args.get('anoInicio')
+        ano_fim = request.args.get('anoFim')
+        institutos = request.args.get('institutos')
+        pesquisadores = request.args.get('pesquisadores')
+        tipo = request.args.get('tipo')
+        order_by = request.args.get('orderBy')
+        sort = request.args.get('sort')
+        posicao_inicial = request.args.get('posicaoInicial')
+        quantidade_itens = request.args.get('quantidadeItens')
+        trabalhos = trabalho_dao.filter_atualizado(ano_inicio, ano_fim, institutos, pesquisadores, tipo, order_by, sort, posicao_inicial, quantidade_itens)
+        return trabalhos
+    except Exception as e:
+        print('exception')
+        print(e)
+        return json.dumps([])
+
 @trabalho_blueprint.route('/contar', methods=['GET'])
 @cross_origin()
 def count():
@@ -59,6 +79,22 @@ def count():
         id_pesquisador = request.args.get('idPesquisador')
         tipo = request.args.get('tipo')
         total_trabalhos = trabalho_dao.count(ano_inicio, ano_fim, id_instituto, id_pesquisador, tipo)
+        return {'totalTrabalhos': total_trabalhos}
+    except Exception as e:
+        print('exception')
+        print(e)
+        return {'totalTrabalhos': 0}
+
+@trabalho_blueprint.route('/contar/atualizado', methods=['GET'])
+@cross_origin()
+def count_atualizado():
+    try:
+        ano_inicio = request.args.get('anoInicio')
+        ano_fim = request.args.get('anoFim')
+        institutos = request.args.get('institutos')
+        pesquisadores = request.args.get('pesquisadores')
+        tipo = request.args.get('tipo')
+        total_trabalhos = trabalho_dao.count_atualizado(ano_inicio, ano_fim, institutos, pesquisadores, tipo)
         return {'totalTrabalhos': total_trabalhos}
     except Exception as e:
         print('exception')
