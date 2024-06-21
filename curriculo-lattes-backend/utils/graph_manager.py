@@ -147,7 +147,7 @@ class GraphManager:
         cores = nx.get_edge_attributes(graph, 'cor').values()
         weights = nx.get_edge_attributes(graph, 'label').values()
 
-        pos = nx.circular_layout(graph)
+        pos = nx.planar_layout(graph)
         plt.figure(figsize=[16,10])
         nx.draw(
             graph,
@@ -202,7 +202,7 @@ class GraphManager:
         cores = nx.get_edge_attributes(graph, 'cor').values()
         weights = nx.get_edge_attributes(graph, 'label').values()
 
-        pos = nx.circular_layout(graph)
+        pos = nx.planar_layout(graph)
         plt.figure(figsize=[16,10])
         nx.draw(
             graph,
